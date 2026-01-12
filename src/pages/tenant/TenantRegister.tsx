@@ -3,6 +3,7 @@ import { Upload, Plus, Trash2, Save, Send, User, Building2, Users, FileText, Sha
 
 export function TenantRegister() {
     const [members, setMembers] = useState([{ name: "", nim: "" }]);
+    const [startupStatus, setStartupStatus] = useState<string>("");
 
     const addMember = () => {
         setMembers([...members, { name: "", nim: "" }]);
@@ -132,29 +133,46 @@ export function TenantRegister() {
                             />
                         </div>
                         <div className="col-span-2 md:col-span-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Lama Usaha (Bulan)</label>
-                            <div className="relative">
-                                <input
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                                />
-                                <span className="absolute right-4 top-2.5 text-gray-400 text-sm">Bulan</span>
-                            </div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Lama Usaha</label>
+                            <select
+                                value={startupStatus}
+                                onChange={(e) => setStartupStatus(e.target.value)}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white"
+                            >
+                                <option value="">Pilih Status</option>
+                                <option value="baru">Baru</option>
+                                <option value="bertumbuh">Bertumbuh</option>
+                            </select>
                         </div>
-                        <div className="col-span-2 md:col-span-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Omzet per Tahun</label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-2.5 text-gray-500 text-sm font-medium">Rp</span>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                                />
-                            </div>
-                        </div>
+
+                        {startupStatus === "bertumbuh" && (
+                            <>
+                                <div className="col-span-2 md:col-span-1 text-inherit animate-in fade-in duration-300">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Lama Waktu Usaha (Bulan)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            placeholder="0"
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                        />
+                                        <span className="absolute right-4 top-2.5 text-gray-400 text-sm">Bulan</span>
+                                    </div>
+                                </div>
+                                <div className="col-span-2 md:col-span-1 animate-in fade-in duration-300">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Omzet Penjualan Harian</label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-2.5 text-gray-500 text-sm font-medium">Rp</span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            placeholder="0"
+                                            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         {/* Social Media Inputs */}
                         <div className="col-span-2 border-t border-gray-100 pt-4 mt-2">
