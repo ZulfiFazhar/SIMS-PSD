@@ -30,10 +30,10 @@ export function RegisterForm({
       const newUser: User = {
         id: `u-${Date.now()}`,
         name: regName,
-        email: `${regName.toLowerCase().replace(" ", "")}@student.univ.ac.id`,
-        role: UserRole.STUDENT,
+        email: `${regName.toLowerCase().replace(" ", "")}@tenant.univ.ac.id`,
+        role: UserRole.TENANT,
         phone: regPhone,
-        password: "123", // Auto-set password for student registration simulation
+        password: "123",
       };
       storageService.saveUser(newUser);
 
@@ -48,7 +48,7 @@ export function RegisterForm({
 
   return (
     <form onSubmit={handleRegister} className="space-y-6">
-      <h3 className="text-lg font-medium text-center">Registrasi Mahasiswa</h3>
+      <h3 className="text-lg font-medium text-center">Registrasi Pengguna</h3>
       {!stepOtp ? (
         <>
           <Input

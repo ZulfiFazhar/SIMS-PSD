@@ -1,7 +1,7 @@
 export const UserRole = {
-  STUDENT: "STUDENT",
+  TENANT: "TENANT",
   ADMIN: "ADMIN",
-  LECTURER: "LECTURER",
+  PUBLIC: "PUBLIC",
 } as const;
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
@@ -21,8 +21,6 @@ export interface User {
   password?: string;
   role: UserRole;
   phone?: string;
-  nip?: string; // For lecturers
-  title?: string; // For lecturers
 }
 
 export interface ScoringCriteria {
@@ -38,7 +36,7 @@ export interface ScoringCriteria {
 
 export interface Startup {
   id: string;
-  studentId: string;
+  tenantId: string;
   // Step 1: Identity
   businessName: string;
   category: string;
@@ -71,10 +69,10 @@ export interface Startup {
 
   // Admin Verification
   adminFeedback?: string;
-  assignedLecturerId?: string;
+  assignedTenantId?: string;
   curationDate?: string;
 
-  // Lecturer Grading
+  // Grading
   scores?: ScoringCriteria;
   totalScore?: number;
 }

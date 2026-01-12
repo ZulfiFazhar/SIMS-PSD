@@ -2,32 +2,28 @@ import { useState } from "react";
 import { LoginForm } from "../components/auth/LoginForm";
 import { RegisterForm } from "../components/auth/RegisterForm";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { UserRole } from "../types";
 import { storageService } from "../services/storageService";
 
 export function AuthPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const { login, user } = useAuth();
-  const navigate = useNavigate();
 
   // Redirect if already logged in
   if (user) {
     switch (user.role) {
-      case UserRole.STUDENT:
-        return <Navigate to="/student" replace />;
+      case UserRole.TENANT:
+        return <Navigate to="/tenant" replace />;
       case UserRole.ADMIN:
         return <Navigate to="/admin" replace />;
-      case UserRole.LECTURER:
-        return <Navigate to="/lecturer" replace />;
       default:
-        return <Navigate to="/" replace />;
+        return <Navigate to="/login" replace />;
     }
   }
 
   const handleLogin = (userId: string) => {
     login(userId);
-    navigate("/student");
     // Navigation is handled by the redirect above after state update
   };
 

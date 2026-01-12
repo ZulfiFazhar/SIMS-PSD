@@ -5,13 +5,13 @@ import { type Startup } from "../../types";
 interface StartupTableProps {
   startups: Startup[];
   onViewDetail: (startup: Startup) => void;
-  onManageLecturers: () => void;
+  onManageTenants: () => void;
 }
 
 export function StartupTable({
   startups,
   onViewDetail,
-  onManageLecturers,
+  onManageTenants,
 }: StartupTableProps) {
   return (
     <div className="space-y-6">
@@ -19,8 +19,8 @@ export function StartupTable({
         <h2 className="text-2xl font-bold text-slate-800">
           Dashboard Verifikasi
         </h2>
-        <Button onClick={onManageLecturers} variant="outline">
-          Kelola Dosen
+        <Button onClick={onManageTenants} variant="outline">
+          Kelola Pengguna
         </Button>
       </div>
 

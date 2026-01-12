@@ -5,9 +5,9 @@ import { type Startup, type User } from "../../types";
 import { useState } from "react";
 
 export function AdminDashboard() {
-  const { startups, lecturers } = useLoaderData() as {
+  const { startups, tenants } = useLoaderData() as {
     startups: Startup[];
-    lecturers: User[];
+    tenants: User[];
   };
   const navigate = useNavigate();
   const [selectedStartup, setSelectedStartup] = useState<Startup | null>(null);
@@ -17,13 +17,13 @@ export function AdminDashboard() {
       <StartupTable
         startups={startups}
         onViewDetail={setSelectedStartup}
-        onManageLecturers={() => navigate("/admin/lecturers")}
+        onManageTenants={() => navigate("/admin/tenants")}
       />
 
       {selectedStartup && (
         <StartupDetailModal
           startup={selectedStartup}
-          lecturers={lecturers}
+          tenants={tenants}
           onClose={() => setSelectedStartup(null)}
           onUpdate={() => {
             window.location.reload();

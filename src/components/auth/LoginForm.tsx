@@ -67,7 +67,7 @@ export function LoginForm({
           onClick={onRegisterClick}
           className="w-full flex justify-center py-2 px-4 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
         >
-          Registrasi Mahasiswa Baru
+          Registrasi Pengguna Baru
         </button>
       </div>
 
