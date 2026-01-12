@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { authService } from "../../services/authService";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Check } from "lucide-react";
 
 interface UserProfile {
     id: string;
@@ -22,7 +22,9 @@ export function TenantProfile() {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
     // Form state for editable fields
@@ -65,9 +67,38 @@ export function TenantProfile() {
             .slice(0, 2);
     };
 
-    const handleSave = () => {
-        // TODO: Implement update profile API call
-        setIsEditing(false);
+    const handleSave = async () => {
+        try {
+            setIsSaving(true);
+            setError(null);
+            setSuccessMessage(null);
+
+            const updateData = {
+                display_name: formData.display_name,
+                phone_number: formData.phone_number || null,
+            };
+
+            const updatedProfile = await authService.updateUserProfile(updateData);
+
+            // Update local state
+            setUserProfile(updatedProfile);
+            setFormData({
+                display_name: updatedProfile.display_name || "",
+                email: updatedProfile.email || "",
+                phone_number: updatedProfile.phone_number || "",
+            });
+
+            setIsEditing(false);
+            setSuccessMessage("Profil berhasil diperbarui!");
+
+            // Clear success message after 3 seconds
+            setTimeout(() => setSuccessMessage(null), 3000);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Gagal memperbarui profil";
+            setError(message);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     if (!user) return null;
@@ -108,7 +139,19 @@ export function TenantProfile() {
     }
 
     return (
-        <div className="p-6 max-w-full mx-auto pb-20">
+        <div className="p-6 max-w-full mx-auto pb-20 relative">
+            {/* Success Notification */}
+            {successMessage && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 duration-300">
+                    <div className="px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border bg-green-600 border-green-500 text-white">
+                        <div className="bg-white/20 p-1 rounded-full text-white">
+                            <Check className="w-3 h-3" />
+                        </div>
+                        <span className="text-sm font-medium">{successMessage}</span>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Profil Saya</h1>
@@ -159,6 +202,7 @@ export function TenantProfile() {
                             <button
                                 onClick={() => {
                                     setIsEditing(false);
+                                    setError(null);
                                     // Reset form data
                                     if (userProfile) {
                                         setFormData({
@@ -168,17 +212,26 @@ export function TenantProfile() {
                                         });
                                     }
                                 }}
-                                className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                                disabled={isSaving}
+                                className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 type="button"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={handleSave}
-                                className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                                disabled={isSaving}
+                                className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 type="button"
                             >
-                                Simpan
+                                {isSaving ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Menyimpan...
+                                    </>
+                                ) : (
+                                    "Simpan"
+                                )}
                             </button>
                         </div>
                     )}

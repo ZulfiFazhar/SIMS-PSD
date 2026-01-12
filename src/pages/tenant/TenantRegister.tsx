@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { tenantService } from "../../services/tenantService";
 import { authService } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
+import { TenantRegistrationDetail, type TenantData } from "./TenantRegistrationDetail";
 
 const FILE_SIZE_LIMITS = {
     logo: 2 * 1024 * 1024, // 2MB
@@ -27,6 +28,9 @@ export function TenantRegister() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
+    const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
+    const [registeredTenant, setRegisteredTenant] = useState<TenantData | null>(null);
+
     const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
     const [error, setError] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
@@ -61,8 +65,30 @@ export function TenantRegister() {
     });
     const [productPhotos, setProductPhotos] = useState<File[]>([]);
 
-    // Init Logic: Load Draft
+    // Check for existing registration
     useEffect(() => {
+        const checkRegistration = async () => {
+            try {
+                const session = authService.getCurrentSession();
+                if (session?.idToken) {
+                    const data = await tenantService.getTenantRegistration(session.idToken);
+                    if (data) {
+                        setRegisteredTenant(data);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to check registration", error);
+            } finally {
+                setIsCheckingRegistration(false);
+            }
+        };
+        checkRegistration();
+    }, []);
+
+    // Init Logic: Load Draft (only if not registered)
+    useEffect(() => {
+        if (registeredTenant) return;
+
         const savedDraft = localStorage.getItem("tenant_register_draft");
         if (savedDraft) {
             try {
@@ -73,7 +99,7 @@ export function TenantRegister() {
                 console.error("Failed to load draft", e);
             }
         }
-    }, []);
+    }, [registeredTenant]);
 
     // Save Draft Logic
     const saveDraft = () => {
@@ -267,6 +293,21 @@ export function TenantRegister() {
     };
 
     if (!user) return null;
+
+    if (isCheckingRegistration) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
+                    <p className="text-gray-600">Memeriksa status pendaftaran...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (registeredTenant) {
+        return <TenantRegistrationDetail data={registeredTenant} />;
+    }
 
     return (
         <div className="p-6 max-w-full mx-auto pb-20 relative">

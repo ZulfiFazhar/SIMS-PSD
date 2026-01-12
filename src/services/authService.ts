@@ -129,4 +129,34 @@ export const authService = {
             throw error;
         }
     },
+
+    async updateUserProfile(profileData: { display_name?: string; phone_number?: string | null }) {
+        try {
+            const session = this.getCurrentSession();
+            if (!session?.idToken) {
+                throw new Error("Not authenticated");
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+                method: "PUT",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session.idToken}`,
+                },
+                body: JSON.stringify(profileData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `Failed to update profile: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.data;
+        } catch (error) {
+            console.error("Update profile error:", error);
+            throw error;
+        }
+    },
 };
