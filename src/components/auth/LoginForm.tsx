@@ -1,100 +1,67 @@
 import { useState } from "react";
-import { Input, Button } from "../SharedUI";
+import { FcGoogle } from "react-icons/fc";
+import { ShieldCheck } from "lucide-react";
 import { type User } from "../../types";
 
 interface LoginFormProps {
   onLogin: (userId: string) => void;
   availableUsers: User[];
-  onRegisterClick: () => void;
 }
 
-export function LoginForm({
-  onLogin,
-  availableUsers,
-  onRegisterClick,
-}: LoginFormProps) {
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
+export function LoginForm({ onLogin, availableUsers }: LoginFormProps) {
+  const [showAccountSelector, setShowAccountSelector] = useState(false);
 
-  const handleManualLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!loginPassword) {
-      alert("Mohon masukkan password.");
-      return;
-    }
+  const handleGoogleLoginClick = () => {
+    setShowAccountSelector(!showAccountSelector);
+  };
 
-    const foundUser = availableUsers.find(
-      (u) => u.email.toLowerCase() === loginEmail.toLowerCase()
-    );
-
-    // Login Verification
-    if (foundUser && foundUser.password === loginPassword) {
-      onLogin(foundUser.id);
-    } else {
-      alert("Email atau Password salah! (Cek kredensial demo di bawah)");
-    }
+  const handleAccountSelect = (user: User) => {
+    onLogin(user.id);
   };
 
   return (
-    <div>
-      <form onSubmit={handleManualLogin} className="space-y-4">
-        <Input
-          label="Email"
-          type="email"
-          value={loginEmail}
-          onChange={(e) => setLoginEmail(e.target.value)}
-          placeholder="nama@email.com"
-          required
-        />
-        <Input
-          label="Password"
-          type="password"
-          value={loginPassword}
-          onChange={(e) => setLoginPassword(e.target.value)}
-          placeholder="********"
-          required
-        />
-        <Button type="submit" className="w-full">
-          Masuk
-        </Button>
-      </form>
+    <div className="space-y-6">
+      {/* Google Login Button */}
+      <button
+        onClick={handleGoogleLoginClick}
+        className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 text-gray-700 font-medium transition-colors duration-200 shadow-sm hover:shadow"
+        type="button"
+      >
+        <FcGoogle className="w-5 h-5" />
+        Masuk dengan Google
+      </button>
 
-      <div className="mt-6 pt-6 border-t border-slate-100">
-        <p className="text-center text-sm text-slate-500 mb-4">
-          Belum punya akun?
-        </p>
-        <button
-          onClick={onRegisterClick}
-          className="w-full flex justify-center py-2 px-4 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
-        >
-          Registrasi Pengguna Baru
-        </button>
-      </div>
-
-      {/* Informasi Akun Demo */}
-      <div className="mt-8 bg-slate-50 p-4 rounded-lg border border-slate-200">
-        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-          Informasi Akun Demo (Simulasi)
-        </h4>
-        <div className="space-y-2 text-xs">
-          {availableUsers.slice(0, 3).map((u) => (
-            <div
-              key={u.id}
-              className="flex justify-between items-center border-b border-slate-200 pb-1 last:border-0"
+      {/* Demo Account Selector */}
+      {showAccountSelector && (
+        <div className="space-y-2 animate-fadeIn">
+          <p className="text-xs text-gray-500 text-center font-medium">
+            Pilih Akun Demo:
+          </p>
+          {availableUsers.map((user) => (
+            <button
+              key={user.id}
+              onClick={() => handleAccountSelect(user)}
+              className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-white hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 group"
+              type="button"
             >
-              <div>
-                <span className="font-medium text-slate-700">{u.role}</span>
-                <div className="text-slate-500">{u.name}</div>
-              </div>
-              <div className="text-right font-mono bg-white px-2 py-1 rounded border">
-                {u.email}
-                <div className="text-[10px] text-slate-400">
-                  Pass: {u.password || "123456"}
+              <div className="text-left">
+                <div className="font-medium text-gray-900 group-hover:text-blue-600">
+                  {user.name}
                 </div>
+                <div className="text-xs text-gray-500">{user.email}</div>
               </div>
-            </div>
+              <div className="text-xs px-2 py-1 bg-gray-100 group-hover:bg-blue-100 rounded text-gray-600 group-hover:text-blue-600 font-medium">
+                {user.role}
+              </div>
+            </button>
           ))}
         </div>
+      )}
+
+      {/* Security Note */}
+      <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+        <ShieldCheck className="w-4 h-4" />
+        <span>Login aman dengan akun Google Anda</span>
       </div>
     </div>
   );
