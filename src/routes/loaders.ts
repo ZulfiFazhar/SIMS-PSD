@@ -1,13 +1,14 @@
 import { storageService } from "../services/storageService";
+import { authService } from "../services/authService";
 import { StartupStatus, UserRole } from "../types";
 import { type LoaderFunctionArgs } from "react-router-dom";
 
 // Tenant Loaders
 export function tenantDashboardLoader() {
-  const user = storageService.getCurrentUser();
-  if (!user) return [];
+  const session = authService.getCurrentSession();
+  if (!session) return [];
   const allStartups = storageService.getStartups();
-  return allStartups.filter((s) => s.tenantId === user.id);
+  return allStartups.filter((s) => s.tenantId === session.user.id);
 }
 
 export function tenantRegisterLoader({ request }: LoaderFunctionArgs) {
@@ -37,12 +38,12 @@ export function tenantGradingLoader({ params }: LoaderFunctionArgs) {
 }
 
 export function tenantAssignedStartupsLoader() {
-  const user = storageService.getCurrentUser();
-  if (!user) return [];
+  const session = authService.getCurrentSession();
+  if (!session) return [];
   const all = storageService.getStartups();
   return all.filter(
     (s) =>
-      s.assignedTenantId === user.id &&
+      s.assignedTenantId === session.user.id &&
       (s.status === StartupStatus.VERIFIED || s.status === StartupStatus.GRADED)
   );
 }

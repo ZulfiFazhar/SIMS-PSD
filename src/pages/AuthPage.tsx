@@ -3,10 +3,21 @@ import { InkubatorLogo } from "../components/auth/InkubatorLogo";
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
 import { UserRole } from "../types";
-import { storageService } from "../services/storageService";
 
 export function AuthPage() {
-  const { login, user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto" />
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Redirect if already logged in
   if (user) {
@@ -20,10 +31,6 @@ export function AuthPage() {
     }
   }
 
-  const handleLogin = (userId: string) => {
-    login(userId);
-    // Navigation is handled by the redirect above after state update
-  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -32,10 +39,7 @@ export function AuthPage() {
           <InkubatorLogo />
 
           <div className="mt-8">
-            <LoginForm
-              onLogin={handleLogin}
-              availableUsers={storageService.getUsers()}
-            />
+            <LoginForm />
           </div>
         </div>
       </div>
