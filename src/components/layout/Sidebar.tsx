@@ -1,8 +1,38 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, FileText, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { tenantService } from "../../services/tenantService";
+import { authService } from "../../services/authService";
 
 export function Sidebar() {
     const location = useLocation();
+    const [registrationStatus, setRegistrationStatus] = useState<string | null>(null);
+
+    // Check for existing registration
+    useEffect(() => {
+        const checkRegistration = async () => {
+            try {
+                const session = authService.getCurrentSession();
+                if (session?.idToken) {
+                    const data = await tenantService.getTenantRegistration(session.idToken);
+                    if (data) {
+                        setRegistrationStatus(data.status);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to check registration", error);
+            }
+        };
+        checkRegistration();
+    }, []);
+
+    // If rejected, show "Registrasi Startup" (allow re-registration)
+    // If pending or approved, show "Detail Startup" (read-only)
+    const getRegisterMenuLabel = () => {
+        if (!registrationStatus) return "Registrasi Startup";
+        if (registrationStatus === 'rejected') return "Registrasi Startup";
+        return "Detail Startup";
+    };
 
     const menuItems = [
         {
@@ -13,7 +43,7 @@ export function Sidebar() {
         {
             path: "/tenant/register",
             icon: FileText,
-            label: "Registrasi Startup",
+            label: getRegisterMenuLabel(),
         },
         {
             path: "/tenant/profile",

@@ -122,6 +122,60 @@ export function TenantRegister() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formData, members]);
 
+    // Pre-fill form data if status is 'rejected' (allow re-registration)
+    useEffect(() => {
+        if (registeredTenant && registeredTenant.status === 'rejected') {
+            // Pre-fill form data from backend
+            setFormData({
+                nama_ketua_tim: registeredTenant.nama_ketua_tim || "",
+                nim_nidn_ketua: registeredTenant.nim_nidn_ketua || "",
+                nomor_telepon: registeredTenant.nomor_telepon || "",
+                fakultas: registeredTenant.fakultas || "",
+                prodi: registeredTenant.prodi || "",
+                nama_bisnis: registeredTenant.nama_bisnis || "",
+                kategori_bisnis: registeredTenant.kategori_bisnis || "",
+                jenis_usaha: registeredTenant.jenis_usaha || "",
+                alamat_usaha: registeredTenant.alamat_usaha || "",
+                startupStatus: registeredTenant.lama_usaha > 0 ? "bertumbuh" : "startup_baru",
+                lama_waktu_usaha: registeredTenant.lama_usaha || 0,
+                omzet: registeredTenant.omzet || "0",
+                social_ig: "",
+                social_tiktok: "",
+            });
+
+            // Pre-fill members data
+            try {
+                const namaAnggota = JSON.parse(registeredTenant.nama_anggota_tim || "[]");
+                const nimAnggota = JSON.parse(registeredTenant.nim_nidn_anggota || "[]");
+
+                if (namaAnggota.length > 0) {
+                    const membersData = namaAnggota.map((nama: string, idx: number) => ({
+                        name: nama,
+                        nim: nimAnggota[idx] || ""
+                    }));
+                    setMembers(membersData);
+                } else {
+                    setMembers([{ name: "", nim: "" }]);
+                }
+            } catch (e) {
+                console.error("Failed to parse members data", e);
+                setMembers([{ name: "", nim: "" }]);
+            }
+
+            // Pre-fill social media if available
+            try {
+                const socialMedia = JSON.parse(registeredTenant.business_documents?.akun_medsos || "{}");
+                setFormData(prev => ({
+                    ...prev,
+                    social_ig: socialMedia.instagram || "",
+                    social_tiktok: socialMedia.tiktok || ""
+                }));
+            } catch (e) {
+                console.error("Failed to parse social media", e);
+            }
+        }
+    }, [registeredTenant]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
 
@@ -305,7 +359,9 @@ export function TenantRegister() {
         );
     }
 
-    if (registeredTenant) {
+
+    // If registered and status is NOT 'rejected', show read-only detail
+    if (registeredTenant && registeredTenant.status !== 'rejected') {
         return <TenantRegistrationDetail data={registeredTenant} />;
     }
 
