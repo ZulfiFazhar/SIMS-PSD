@@ -11,6 +11,12 @@ export function tenantDashboardLoader() {
   return allStartups.filter((s) => s.tenantId === session.user.id);
 }
 
+export function tenantProfileLoader() {
+  // Profile data will be managed by the component itself using useAuth
+  // No need to load anything here since we're using mock data
+  return null;
+}
+
 export function tenantRegisterLoader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const editId = url.searchParams.get("edit");

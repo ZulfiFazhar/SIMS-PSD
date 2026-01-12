@@ -20,20 +20,14 @@ interface AuthSession {
 }
 
 export const authService = {
-    /**
-     * Sign in with Google using Firebase popup
-     * Then authenticate with backend API
-     */
+
     async signInWithGoogle(): Promise<User> {
         try {
-            // Step 1: Firebase Google Sign-In
             const result = await signInWithPopup(auth, googleProvider);
             const firebaseUser = result.user;
 
-            // Step 2: Get Firebase ID Token
             const idToken = await firebaseUser.getIdToken();
 
-            // Step 3: Authenticate with Backend
             const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: "POST",
                 headers: {
@@ -49,7 +43,6 @@ export const authService = {
 
             const data: BackendAuthResponse = await response.json();
 
-            // Step 4: Create user object from backend or Firebase data
             const user: User = data.user || {
                 id: firebaseUser.uid,
                 email: firebaseUser.email || "",
@@ -57,7 +50,6 @@ export const authService = {
                 role: "TENANT" as const,
             };
 
-            // Step 5: Store session
             const userSession: AuthSession = {
                 user,
                 idToken,
@@ -73,9 +65,7 @@ export const authService = {
         }
     },
 
-    /**
-     * Sign out from Firebase and clear session
-     */
+
     async signOut(): Promise<void> {
         try {
             await firebaseSignOut(auth);
@@ -86,9 +76,7 @@ export const authService = {
         }
     },
 
-    /**
-     * Get current session from localStorage
-     */
+
     getCurrentSession(): AuthSession | null {
         const session = localStorage.getItem("auth_session");
         if (!session) return null;
@@ -100,9 +88,7 @@ export const authService = {
         }
     },
 
-    /**
-     * Check if session is still valid (< 24 hours old)
-     */
+
     isSessionValid(): boolean {
         const sessionStr = localStorage.getItem("auth_session");
         if (!sessionStr) return false;
@@ -110,9 +96,37 @@ export const authService = {
         try {
             const session: AuthSession = JSON.parse(sessionStr);
             const age = Date.now() - session.timestamp;
-            return age < 86400000; // 24 hours (1 day)
+            return age < 86400000;
         } catch {
             return false;
+        }
+    },
+
+    async getCurrentUserProfile() {
+        try {
+            const session = this.getCurrentSession();
+            if (!session?.idToken) {
+                throw new Error("Not authenticated");
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${session.idToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `Failed to fetch profile: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.data;
+        } catch (error) {
+            console.error("Get profile error:", error);
+            throw error;
         }
     },
 };

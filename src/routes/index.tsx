@@ -8,6 +8,7 @@ import {
   tenantDashboardLoader,
   tenantRegisterLoader,
   tenantDetailLoader,
+  tenantProfileLoader,
   adminDashboardLoader,
   adminTenantsLoader,
 } from "./loaders";
@@ -18,6 +19,7 @@ import { TenantRegister } from "../pages/tenant/TenantRegister";
 import { TenantStartupDetail } from "../pages/tenant/TenantStartupDetail";
 import { AdminDashboard } from "../pages/admin/AdminDashboard";
 import { AdminTenants } from "../pages/admin/AdminTenants";
+import { TenantProfile } from "../pages/tenant/TenantProfile";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +53,11 @@ export const router = createBrowserRouter([
             path: "startup/:id",
             element: <TenantStartupDetail />,
             loader: tenantDetailLoader,
+          },
+          {
+            path: "profile",
+            element: <TenantProfile />,
+            loader: tenantProfileLoader,
           },
         ],
       },
