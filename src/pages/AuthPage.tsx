@@ -22,10 +22,11 @@ export function AuthPage() {
   // Redirect if already logged in
   if (user) {
     switch (user.role) {
-      case UserRole.TENANT:
-        return <Navigate to="/tenant" replace />;
       case UserRole.ADMIN:
         return <Navigate to="/admin" replace />;
+      case UserRole.TENANT:
+      case UserRole.GUEST:
+        return <Navigate to="/tenant" replace />;
       default:
         return <Navigate to="/login" replace />;
     }

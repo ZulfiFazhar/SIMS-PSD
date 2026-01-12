@@ -1,20 +1,23 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, FileText, User } from "lucide-react";
+import { Home, FileText, User, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { tenantService } from "../../services/tenantService";
 import { authService } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
+import { UserRole } from "../../types";
 
 export function Sidebar() {
     const location = useLocation();
+    const { user } = useAuth();
     const [registrationStatus, setRegistrationStatus] = useState<string | null>(null);
 
-    // Check for existing registration
+    // Check for existing registration (only for tenant/guest users)
     useEffect(() => {
         const checkRegistration = async () => {
             try {
-                const session = authService.getCurrentSession();
-                if (session?.idToken) {
-                    const data = await tenantService.getTenantRegistration(session.idToken);
+                if (user?.role !== UserRole.ADMIN) {
+                    const idToken = await authService.getValidToken();
+                    const data = await tenantService.getTenantRegistration(idToken);
                     if (data) {
                         setRegistrationStatus(data.status);
                     }
@@ -24,17 +27,15 @@ export function Sidebar() {
             }
         };
         checkRegistration();
-    }, []);
+    }, [user]);
 
-    // If rejected, show "Registrasi Startup" (allow re-registration)
-    // If pending or approved, show "Detail Startup" (read-only)
     const getRegisterMenuLabel = () => {
         if (!registrationStatus) return "Registrasi Startup";
         if (registrationStatus === 'rejected') return "Registrasi Startup";
         return "Detail Startup";
     };
 
-    const menuItems = [
+    const tenantMenuItems = [
         {
             path: "/tenant",
             icon: Home,
@@ -51,6 +52,21 @@ export function Sidebar() {
             label: "Profil",
         },
     ];
+
+    const adminMenuItems = [
+        {
+            path: "/admin",
+            icon: Home,
+            label: "Dashboard",
+        },
+        {
+            path: "/admin/tenants",
+            icon: Users,
+            label: "Kelola Tenant",
+        },
+    ];
+
+    const menuItems = user?.role === UserRole.ADMIN ? adminMenuItems : tenantMenuItems;
 
     return (
         <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
@@ -71,7 +87,7 @@ export function Sidebar() {
                     {menuItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = location.pathname === item.path ||
-                            (item.path !== "/tenant" && location.pathname.startsWith(item.path));
+                            (item.path !== "/tenant" && item.path !== "/admin" && location.pathname.startsWith(item.path));
 
                         return (
                             <li key={item.path}>

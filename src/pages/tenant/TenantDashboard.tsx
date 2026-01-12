@@ -80,12 +80,10 @@ export function TenantDashboard() {
     useEffect(() => {
         const checkRegistration = async () => {
             try {
-                const session = authService.getCurrentSession();
-                if (session?.idToken) {
-                    const data = await tenantService.getTenantRegistration(session.idToken);
-                    if (data) {
-                        setRegisteredTenant(data);
-                    }
+                const idToken = await authService.getValidToken();
+                const data = await tenantService.getTenantRegistration(idToken);
+                if (data) {
+                    setRegisteredTenant(data);
                 }
             } catch (error) {
                 console.error("Failed to check registration", error);

@@ -69,12 +69,10 @@ export function TenantRegister() {
     useEffect(() => {
         const checkRegistration = async () => {
             try {
-                const session = authService.getCurrentSession();
-                if (session?.idToken) {
-                    const data = await tenantService.getTenantRegistration(session.idToken);
-                    if (data) {
-                        setRegisteredTenant(data);
-                    }
+                const idToken = await authService.getValidToken();
+                const data = await tenantService.getTenantRegistration(idToken);
+                if (data) {
+                    setRegisteredTenant(data);
                 }
             } catch (error) {
                 console.error("Failed to check registration", error);
@@ -280,8 +278,7 @@ export function TenantRegister() {
         }
 
         try {
-            const session = authService.getCurrentSession();
-            if (!session?.idToken) throw new Error("Silakan login kembali.");
+            const idToken = await authService.getValidToken();
 
             const submissionData = new FormData();
 
@@ -330,7 +327,7 @@ export function TenantRegister() {
             });
 
             // Call API
-            await tenantService.registerStartup(submissionData, session.idToken);
+            await tenantService.registerStartup(submissionData, idToken);
 
             // Clear Draft
             localStorage.removeItem("tenant_register_draft");
