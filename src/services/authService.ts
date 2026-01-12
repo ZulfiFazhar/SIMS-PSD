@@ -5,7 +5,7 @@ import {
 import { auth, googleProvider } from "../lib/firebase";
 import type { User } from "../types";
 
-const API_BASE_URL = "https://inkubator.zulfi.web.id";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface BackendAuthResponse {
     message: string;
