@@ -4,9 +4,9 @@ export function InkubatorLogo() {
             {/* UNIKOM Logo */}
             <div className="flex items-center justify-center">
                 <img
-                    src="/unikom-logo.png"
+                    src="/unikomlogo.png"
                     alt="UNIKOM Logo"
-                    className="h-24 w-auto"
+                    className="h-40 w-auto"
                 />
             </div>
 

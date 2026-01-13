@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { authService } from "../../services/authService";
-import { Loader2, AlertCircle, Check } from "lucide-react";
+import { Loader2, AlertCircle, Check, Lock } from "lucide-react";
 
 interface UserProfile {
     id: string;
@@ -258,16 +258,22 @@ export function TenantProfile() {
 
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                                 Email
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                    <Lock className="w-3 h-3" />
+                                    Tidak dapat diubah
+                                </span>
                             </label>
-                            <input
-                                type="email"
-                                value={formData.email}
-                                disabled={true}
-                                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 outline-none cursor-not-allowed"
-                            />
-                            <p className="mt-1 text-xs text-gray-500">Email tidak dapat diubah</p>
+                            <div className="relative">
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    disabled={true}
+                                    className="w-full px-4 py-2.5 pl-10 rounded-lg border border-gray-200 bg-gray-100 text-gray-500 outline-none cursor-not-allowed"
+                                />
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            </div>
                         </div>
 
                         {/* Nomor Telepon */}
@@ -287,15 +293,22 @@ export function TenantProfile() {
 
                         {/* Role (Read-only) */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                                 Role
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                    <Lock className="w-3 h-3" />
+                                    Tidak dapat diubah
+                                </span>
                             </label>
-                            <input
-                                type="text"
-                                value={userProfile?.role || "-"}
-                                disabled={true}
-                                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 outline-none capitalize cursor-not-allowed"
-                            />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={userProfile?.role || "-"}
+                                    disabled={true}
+                                    className="w-full px-4 py-2.5 pl-10 rounded-lg border border-gray-200 bg-gray-100 text-gray-500 outline-none capitalize cursor-not-allowed"
+                                />
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            </div>
                         </div>
                     </div>
                 </div>

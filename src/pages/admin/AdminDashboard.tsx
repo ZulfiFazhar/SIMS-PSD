@@ -1,113 +1,11 @@
-import { useState } from "react";
-import { Users, Clock, CheckCircle, XCircle, Eye, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Users, Clock, CheckCircle, XCircle, Eye, ChevronDown, Loader2, AlertCircle } from "lucide-react";
 import type { TenantRegistration, TenantRegistrationStatus } from "../../types";
 import { TenantRegistrationStatus as StatusEnum } from "../../types";
 import { StatusUpdateDialog } from "../../components/admin/StatusUpdateDialog";
 import { FilePreviewModal } from "../../components/admin/FilePreviewModal";
-
-// Mock data for demonstration
-const mockTenants: TenantRegistration[] = [
-  {
-    id: "1",
-    nama_bisnis: "Warung Kopi Digital",
-    nama_ketua_tim: "Budi Santoso",
-    nim_nidn_ketua: "41520001",
-    fakultas: "Teknik & Ilmu Komputer",
-    prodi: "Teknik Informatika",
-    kategori_bisnis: "Kuliner & F&B",
-    jenis_usaha: "Offline",
-    alamat_usaha: "Jl. Dipatiukur No. 112-116, Bandung",
-    nomor_telepon: "081234567890",
-    lama_usaha: 6,
-    omzet: 15000000,
-    status: StatusEnum.PENDING,
-    created_at: "2026-01-05T08:30:00",
-    updated_at: "2026-01-05T08:30:00",
-    files: {
-      logo: "/uploads/logo1.png",
-      proposal: "/uploads/proposal1.pdf",
-      bmc: "/uploads/bmc1.pdf",
-    }
-  },
-  {
-    id: "2",
-    nama_bisnis: "TechStart Indonesia",
-    nama_ketua_tim: "Siti Nurhaliza",
-    nim_nidn_ketua: "41520010",
-    fakultas: "Teknik & Ilmu Komputer",
-    prodi: "Sistem Informasi",
-    kategori_bisnis: "Teknologi & Digital",
-    jenis_usaha: "Online",
-    alamat_usaha: "Jl. Setiabudi No. 229, Bandung",
-    nomor_telepon: "082345678901",
-    status: StatusEnum.PENDING,
-    created_at: "2026-01-06T10:15:00",
-    updated_at: "2026-01-06T10:15:00",
-  },
-  {
-    id: "3",
-    nama_bisnis: "Fashion EveryDay",
-    nama_ketua_tim: "Ahmad Hidayat",
-    nim_nidn_ketua: "41520025",
-    fakultas: "Desain",
-    prodi: "Desain Komunikasi Visual",
-    kategori_bisnis: "Fashion & Kreatif",
-    jenis_usaha: "Hybrid",
-    alamat_usaha: "Jl. Terusan Buah Batu, Bandung",
-    nomor_telepon: "083456789012",
-    lama_usaha: 12,
-    omzet: 25000000,
-    status: StatusEnum.APPROVED,
-    created_at: "2025-12-20T14:20:00",
-    updated_at: "2026-01-08T09:00:00",
-  },
-  {
-    id: "4",
-    nama_bisnis: "Agro Fresh Market",
-    nama_ketua_tim: "Dewi Lestari",
-    nim_nidn_ketua: "41520033",
-    fakultas: "Ekonomi",
-    prodi: "Manajemen",
-    kategori_bisnis: "Agribisnis",
-    jenis_usaha: "Offline",
-    alamat_usaha: "Jl. Soekarno Hatta No. 590, Bandung",
-    nomor_telepon: "084567890123",
-    status: StatusEnum.REJECTED,
-    created_at: "2025-12-15T16:45:00",
-    updated_at: "2026-01-03T11:30:00",
-    rejection_reason: "Proposal kurang detail pada bagian analisis pasar. Mohon tambahkan data kompetitor dan strategi marketing yang lebih spesifik."
-  },
-  {
-    id: "5",
-    nama_bisnis: "EduTech Solutions",
-    nama_ketua_tim: "Rian Firmansyah",
-    nim_nidn_ketua: "41520042",
-    fakultas: "Teknik & Ilmu Komputer",
-    prodi: "Teknik Informatika",
-    kategori_bisnis: "Teknologi & Digital",
-    jenis_usaha: "Online",
-    alamat_usaha: "Jl. Cikutra No. 204, Bandung",
-    nomor_telepon: "085678901234",
-    status: StatusEnum.PENDING,
-    created_at: "2026-01-07T09:00:00",
-    updated_at: "2026-01-07T09:00:00",
-  },
-  {
-    id: "6",
-    nama_bisnis: "Jasa Event Organizer Pro",
-    nama_ketua_tim: "Maya Kusuma",
-    nim_nidn_ketua: "41520051",
-    fakultas: "Ilmu Komunikasi",
-    prodi: "Public Relations",
-    kategori_bisnis: "Jasa & Pelayanan",
-    jenis_usaha: "Offline",
-    alamat_usaha: "Jl. Pasteur No. 65, Bandung",
-    nomor_telepon: "086789012345",
-    status: StatusEnum.PENDING,
-    created_at: "2026-01-08T13:20:00",
-    updated_at: "2026-01-08T13:20:00",
-  },
-];
+import { adminService } from "../../services/adminService";
+import { authService } from "../../services/authService";
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -134,10 +32,52 @@ function StatCard({ icon, title, value, bgColor, iconColor }: StatCardProps) {
 }
 
 export function AdminDashboard() {
-  const [tenants] = useState<TenantRegistration[]>(mockTenants);
+  const [tenants, setTenants] = useState<TenantRegistration[]>([]);
   const [selectedTenant, setSelectedTenant] = useState<TenantRegistration | null>(null);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [showFilePreview, setShowFilePreview] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch tenants on mount
+  useEffect(() => {
+    fetchTenants();
+  }, []);
+
+  const fetchTenants = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const token = await authService.getValidToken();
+      const data = await adminService.getAllTenants(token);
+      setTenants(data.tenants);
+    } catch (err) {
+      console.error('Failed to fetch tenants:', err);
+      setError(err instanceof Error ? err.message : 'Gagal memuat data tenant');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (rejectionReason?: string) => {
+    if (!selectedTenant) return;
+
+    try {
+      const token = await authService.getValidToken();
+      await adminService.updateTenantStatus(token, selectedTenant.id, {
+        status: selectedTenant.status,
+        rejection_reason: rejectionReason,
+      });
+
+      // Refresh data after successful update
+      await fetchTenants();
+      setShowStatusDialog(false);
+      setSelectedTenant(null);
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert(err instanceof Error ? err.message : 'Gagal mengubah status');
+    }
+  };
 
   // Calculate stats
   const totalTenants = tenants.length;
@@ -165,6 +105,43 @@ export function AdminDashboard() {
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="p-6 max-w-full mx-auto">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
+            <p className="text-gray-600">Memuat data tenant...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="p-6 max-w-full mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <div>
+              <h3 className="font-semibold text-red-900">Gagal Memuat Data</h3>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+            </div>
+          </div>
+          <button
+            onClick={fetchTenants}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
 
 
   return (
@@ -294,16 +271,7 @@ export function AdminDashboard() {
           tenant={selectedTenant}
           newStatus={selectedTenant.status}
           onClose={() => setShowStatusDialog(false)}
-          onConfirm={(rejectionReason) => {
-            // Placeholder for API call
-            console.log('Status updated:', {
-              tenantId: selectedTenant.id,
-              newStatus: selectedTenant.status,
-              rejectionReason
-            });
-            alert(`Status berhasil diubah!\n${rejectionReason ? `Alasan: ${rejectionReason}` : ''}`);
-            setShowStatusDialog(false);
-          }}
+          onConfirm={handleStatusUpdate}
         />
       )}
 

@@ -15,65 +15,75 @@ interface FileItem {
 
 export function FilePreviewModal({ tenant, onClose }: FilePreviewModalProps) {
     const files: FileItem[] = [];
+    const docs = tenant.business_documents;
 
-    // Build file list
-    if (tenant.files?.logo) {
+    // Build file list from business_documents
+    if (docs?.logo_url) {
         files.push({
             name: "Logo Bisnis",
             type: 'image',
-            url: tenant.files.logo,
+            url: docs.logo_url,
             icon: <Image className="w-5 h-5" />
         });
     }
-    if (tenant.files?.proposal) {
+    if (docs?.proposal_url) {
         files.push({
             name: "Proposal Bisnis",
             type: 'document',
-            url: tenant.files.proposal,
+            url: docs.proposal_url,
             icon: <FileText className="w-5 h-5" />
         });
     }
-    if (tenant.files?.bmc) {
+    if (docs?.bmc_url) {
         files.push({
             name: "Business Model Canvas (BMC)",
             type: 'document',
-            url: tenant.files.bmc,
+            url: docs.bmc_url,
             icon: <FileText className="w-5 h-5" />
         });
     }
-    if (tenant.files?.nib) {
+    if (docs?.sertifikat_nib_url) {
         files.push({
             name: "Nomor Induk Berusaha (NIB)",
             type: 'document',
-            url: tenant.files.nib,
+            url: docs.sertifikat_nib_url,
             icon: <FileText className="w-5 h-5" />
         });
     }
-    if (tenant.files?.financial_report) {
+    if (docs?.laporan_keuangan_url) {
         files.push({
             name: "Laporan Keuangan",
             type: 'document',
-            url: tenant.files.financial_report,
+            url: docs.laporan_keuangan_url,
             icon: <FileText className="w-5 h-5" />
         });
     }
-    if (tenant.files?.rab) {
+    if (docs?.rab_url) {
         files.push({
             name: "Rencana Anggaran Biaya (RAB)",
             type: 'document',
-            url: tenant.files.rab,
+            url: docs.rab_url,
             icon: <FileText className="w-5 h-5" />
         });
     }
-    if (tenant.files?.product_photos && tenant.files.product_photos.length > 0) {
-        tenant.files.product_photos.forEach((photo, index) => {
-            files.push({
-                name: `Foto Produk ${index + 1}`,
-                type: 'image',
-                url: photo,
-                icon: <Image className="w-5 h-5" />
-            });
-        });
+
+    // Parse foto_produk_urls from JSON string
+    if (docs?.foto_produk_urls) {
+        try {
+            const productPhotos = JSON.parse(docs.foto_produk_urls);
+            if (Array.isArray(productPhotos) && productPhotos.length > 0) {
+                productPhotos.forEach((photo, index) => {
+                    files.push({
+                        name: `Foto Produk ${index + 1}`,
+                        type: 'image',
+                        url: photo,
+                        icon: <Image className="w-5 h-5" />
+                    });
+                });
+            }
+        } catch (err) {
+            console.error('Failed to parse foto_produk_urls:', err);
+        }
     }
 
     const handleOpenFile = (url?: string) => {
@@ -123,8 +133,8 @@ export function FilePreviewModal({ tenant, onClose }: FilePreviewModalProps) {
                                 >
                                     <div className="flex items-center gap-3 flex-1">
                                         <div className={`p-2 rounded-lg ${file.type === 'image'
-                                                ? 'bg-purple-100 text-purple-600'
-                                                : 'bg-blue-100 text-blue-600'
+                                            ? 'bg-purple-100 text-purple-600'
+                                            : 'bg-blue-100 text-blue-600'
                                             } group-hover:scale-110 transition-transform`}>
                                             {file.icon}
                                         </div>

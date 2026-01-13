@@ -1,133 +1,72 @@
-import { useState } from "react";
-import { Search, ChevronDown, Eye, Power } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, ChevronDown, Eye, Power, Loader2, AlertCircle } from "lucide-react";
 import type { TenantRegistration, TenantRegistrationStatus } from "../../types";
 import { TenantRegistrationStatus as StatusEnum } from "../../types";
 import { StatusUpdateDialog } from "../../components/admin/StatusUpdateDialog";
 import { FilePreviewModal } from "../../components/admin/FilePreviewModal";
-
-// Reuse mock data from AdminDashboard
-const mockTenants: TenantRegistration[] = [
-    {
-        id: "1",
-        nama_bisnis: "Warung Kopi Digital",
-        nama_ketua_tim: "Budi Santoso",
-        nim_nidn_ketua: "41520001",
-        fakultas: "Teknik & Ilmu Komputer",
-        prodi: "Teknik Informatika",
-        kategori_bisnis: "Kuliner & F&B",
-        jenis_usaha: "Offline",
-        alamat_usaha: "Jl. Dipatiukur No. 112-116, Bandung",
-        nomor_telepon: "081234567890",
-        lama_usaha: 6,
-        omzet: 15000000,
-        status: StatusEnum.PENDING,
-        created_at: "2026-01-05T08:30:00",
-        updated_at: "2026-01-05T08:30:00",
-        files: {
-            logo: "/uploads/logo1.png",
-            proposal: "/uploads/proposal1.pdf",
-            bmc: "/uploads/bmc1.pdf",
-        }
-    },
-    {
-        id: "2",
-        nama_bisnis: "TechStart Indonesia",
-        nama_ketua_tim: "Siti Nurhaliza",
-        nim_nidn_ketua: "41520010",
-        fakultas: "Teknik & Ilmu Komputer",
-        prodi: "Sistem Informasi",
-        kategori_bisnis: "Teknologi & Digital",
-        jenis_usaha: "Online",
-        alamat_usaha: "Jl. Setiabudi No. 229, Bandung",
-        nomor_telepon: "082345678901",
-        status: StatusEnum.PENDING,
-        created_at: "2026-01-06T10:15:00",
-        updated_at: "2026-01-06T10:15:00",
-    },
-    {
-        id: "3",
-        nama_bisnis: "Fashion EveryDay",
-        nama_ketua_tim: "Ahmad Hidayat",
-        nim_nidn_ketua: "41520025",
-        fakultas: "Desain",
-        prodi: "Desain Komunikasi Visual",
-        kategori_bisnis: "Fashion & Kreatif",
-        jenis_usaha: "Hybrid",
-        alamat_usaha: "Jl. Terusan Buah Batu, Bandung",
-        nomor_telepon: "083456789012",
-        lama_usaha: 12,
-        omzet: 25000000,
-        status: StatusEnum.APPROVED,
-        created_at: "2025-12-20T14:20:00",
-        updated_at: "2026-01-08T09:00:00",
-    },
-    {
-        id: "4",
-        nama_bisnis: "Agro Fresh Market",
-        nama_ketua_tim: "Dewi Lestari",
-        nim_nidn_ketua: "41520033",
-        fakultas: "Ekonomi",
-        prodi: "Manajemen",
-        kategori_bisnis: "Agribisnis",
-        jenis_usaha: "Offline",
-        alamat_usaha: "Jl. Soekarno Hatta No. 590, Bandung",
-        nomor_telepon: "084567890123",
-        status: StatusEnum.REJECTED,
-        created_at: "2025-12-15T16:45:00",
-        updated_at: "2026-01-03T11:30:00",
-        rejection_reason: "Proposal kurang detail pada bagian analisis pasar. Mohon tambahkan data kompetitor dan strategi marketing yang lebih spesifik."
-    },
-    {
-        id: "5",
-        nama_bisnis: "EduTech Solutions",
-        nama_ketua_tim: "Rian Firmansyah",
-        nim_nidn_ketua: "41520042",
-        fakultas: "Teknik & Ilmu Komputer",
-        prodi: "Teknik Informatika",
-        kategori_bisnis: "Teknologi & Digital",
-        jenis_usaha: "Online",
-        alamat_usaha: "Jl. Cikutra No. 204, Bandung",
-        nomor_telepon: "085678901234",
-        status: StatusEnum.PENDING,
-        created_at: "2026-01-07T09:00:00",
-        updated_at: "2026-01-07T09:00:00",
-    },
-    {
-        id: "6",
-        nama_bisnis: "Jasa Event Organizer Pro",
-        nama_ketua_tim: "Maya Kusuma",
-        nim_nidn_ketua: "41520051",
-        fakultas: "Ilmu Komunikasi",
-        prodi: "Public Relations",
-        kategori_bisnis: "Jasa & Pelayanan",
-        jenis_usaha: "Offline",
-        alamat_usaha: "Jl. Pasteur No. 65, Bandung",
-        nomor_telepon: "086789012345",
-        status: StatusEnum.PENDING,
-        created_at: "2026-01-08T13:20:00",
-        updated_at: "2026-01-08T13:20:00",
-    },
-];
+import { adminService } from "../../services/adminService";
+import { authService } from "../../services/authService";
 
 export function AdminTenants() {
-    const [tenants] = useState<TenantRegistration[]>(mockTenants);
+    const [tenants, setTenants] = useState<TenantRegistration[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [selectedTenant, setSelectedTenant] = useState<TenantRegistration | null>(null);
     const [showStatusDialog, setShowStatusDialog] = useState(false);
     const [showFilePreview, setShowFilePreview] = useState(false);
     const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // Filter tenants based on search and status
+    // Fetch tenants on mount and when status filter changes
+    useEffect(() => {
+        fetchTenants();
+    }, [statusFilter]);
+
+    const fetchTenants = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const token = await authService.getValidToken();
+            const params = statusFilter !== "all" ? { status: statusFilter as any } : undefined;
+            const data = await adminService.getAllTenants(token, params);
+            setTenants(data.tenants);
+        } catch (err) {
+            console.error('Failed to fetch tenants:', err);
+            setError(err instanceof Error ? err.message : 'Gagal memuat data tenant');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleStatusUpdate = async (rejectionReason?: string) => {
+        if (!selectedTenant) return;
+
+        try {
+            const token = await authService.getValidToken();
+            await adminService.updateTenantStatus(token, selectedTenant.id, {
+                status: selectedTenant.status,
+                rejection_reason: rejectionReason,
+            });
+
+            // Refresh data after successful update
+            await fetchTenants();
+            setShowStatusDialog(false);
+            setSelectedTenant(null);
+        } catch (err) {
+            console.error('Failed to update status:', err);
+            alert(err instanceof Error ? err.message : 'Gagal mengubah status');
+        }
+    };
+
+    // Filter tenants based on search (client-side filtering for search, server-side for status)
     const filteredTenants = tenants.filter((tenant) => {
         const matchesSearch =
             tenant.nama_bisnis.toLowerCase().includes(searchQuery.toLowerCase()) ||
             tenant.nama_ketua_tim.toLowerCase().includes(searchQuery.toLowerCase()) ||
             tenant.nim_nidn_ketua.includes(searchQuery);
 
-        const matchesStatus = statusFilter === "all" || tenant.status === statusFilter;
-
-        return matchesSearch && matchesStatus;
+        return matchesSearch;
     });
 
     const handleStatusChange = (tenant: TenantRegistration, newStatus: TenantRegistrationStatus) => {
@@ -311,15 +250,7 @@ export function AdminTenants() {
                     tenant={selectedTenant}
                     newStatus={selectedTenant.status}
                     onClose={() => setShowStatusDialog(false)}
-                    onConfirm={(rejectionReason) => {
-                        console.log('Status updated:', {
-                            tenantId: selectedTenant.id,
-                            newStatus: selectedTenant.status,
-                            rejectionReason
-                        });
-                        alert(`Status berhasil diubah!\n${rejectionReason ? `Alasan: ${rejectionReason}` : ''}`);
-                        setShowStatusDialog(false);
-                    }}
+                    onConfirm={handleStatusUpdate}
                 />
             )}
 
