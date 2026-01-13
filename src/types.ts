@@ -85,3 +85,38 @@ export const CATEGORIES = [
   "Agribisnis",
   "Sosial & Lingkungan",
 ];
+
+export const TenantRegistrationStatus = {
+  PENDING: "pending",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+} as const;
+export type TenantRegistrationStatus = (typeof TenantRegistrationStatus)[keyof typeof TenantRegistrationStatus];
+
+export interface TenantRegistration {
+  id: string;
+  nama_bisnis: string;
+  nama_ketua_tim: string;
+  nim_nidn_ketua: string;
+  fakultas: string;
+  prodi: string;
+  kategori_bisnis: string;
+  jenis_usaha: string;
+  alamat_usaha: string;
+  nomor_telepon: string;
+  lama_usaha?: number;
+  omzet?: number;
+  status: TenantRegistrationStatus;
+  created_at: string;
+  updated_at: string;
+  rejection_reason?: string;
+  files?: {
+    logo?: string;
+    proposal?: string;
+    bmc?: string;
+    nib?: string;
+    financial_report?: string;
+    rab?: string;
+    product_photos?: string[];
+  };
+}

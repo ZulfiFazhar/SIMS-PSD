@@ -56,13 +56,8 @@ export function tenantAssignedStartupsLoader() {
 
 // Admin Loaders
 export function adminDashboardLoader() {
-  const startups = storageService
-    .getStartups()
-    .filter((s) => s.status !== StartupStatus.DRAFT);
-  const tenants = storageService
-    .getUsers()
-    .filter((u) => u.role === UserRole.TENANT);
-  return { startups, tenants };
+  // AdminDashboard now uses internal mock data
+  return null;
 }
 
 export function adminTenantsLoader() {

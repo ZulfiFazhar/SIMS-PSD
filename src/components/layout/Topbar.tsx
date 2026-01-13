@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Menu, LogOut, ChevronDown, FileText, Download } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { UserRole } from "../../types";
 
 interface TopbarProps {
     title?: string;
@@ -48,19 +49,21 @@ export function Topbar({ title = "Panduan Penggunaan", onToggleSidebar }: Topbar
                     <Menu className="w-6 h-6" />
                 </button>
 
-                {/* Title as Download Link Placeholder */}
-                <button
-                    className="flex items-center gap-2 group px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-all border border-transparent hover:border-blue-100"
-                    title="Download Dokumen"
-                >
-                    <div className="p-1 bg-blue-100 text-blue-600 rounded group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <FileText className="w-4 h-4" />
-                    </div>
-                    <span className="text-lg font-medium text-gray-900 group-hover:text-blue-700 transition-colors">
-                        {title}
-                    </span>
-                    <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-600 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                </button>
+                {/* Title as Download Link Placeholder - Only for Tenant/Guest */}
+                {user?.role !== UserRole.ADMIN && (
+                    <button
+                        className="flex items-center gap-2 group px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-all border border-transparent hover:border-blue-100"
+                        title="Download Dokumen"
+                    >
+                        <div className="p-1 bg-blue-100 text-blue-600 rounded group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <FileText className="w-4 h-4" />
+                        </div>
+                        <span className="text-lg font-medium text-gray-900 group-hover:text-blue-700 transition-colors">
+                            {title}
+                        </span>
+                        <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-600 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                    </button>
+                )}
             </div>
 
             {/* Right: User */}
