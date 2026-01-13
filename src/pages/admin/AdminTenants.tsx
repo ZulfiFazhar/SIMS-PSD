@@ -243,7 +243,6 @@ export function AdminTenants() {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-medium text-gray-900">{tenant.nama_bisnis}</div>
-                                            <div className="text-xs text-gray-500">{tenant.jenis_usaha}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm text-gray-900">{tenant.nama_ketua_tim}</div>

@@ -211,7 +211,7 @@ export function AdminDashboard() {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Top 5 Tenant Butuh Review Segera</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Tenant paling lama menunggu validasi (diurutkan berdasarkan urgensitas)
+            Tenant paling lama menunggu validasi
           </p>
         </div>
 
@@ -242,7 +242,6 @@ export function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{tenant.nama_bisnis}</div>
-                      <div className="text-xs text-gray-500">{tenant.jenis_usaha}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{tenant.nama_ketua_tim}</div>

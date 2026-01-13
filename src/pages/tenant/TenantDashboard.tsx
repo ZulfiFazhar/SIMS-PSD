@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { tenantService } from "../../services/tenantService";
 import { authService } from "../../services/authService";
 import {
-    User,
     FileText,
     Clock,
     ArrowRight,
@@ -120,30 +119,59 @@ export function TenantDashboard() {
                 </div>
 
                 {/* Info Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Admin Card */}
-                    <InfoCard
-                        icon={<User className="w-5 h-5" />}
-                        label="Admin"
-                        value="Bu Yati Suganto"
-                        subtitle="Informasi Admin"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Tanggal Bergabung Card */}
+                    {registeredTenant && (
+                        <InfoCard
+                            icon={<Clock className="w-5 h-5" />}
+                            label="Terdaftar Sejak"
+                            value={new Date(registeredTenant.created_at).toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })}
+                            subtitle={(() => {
+                                const days = Math.floor((Date.now() - new Date(registeredTenant.created_at).getTime()) / (1000 * 60 * 60 * 24));
+                                return `${days} hari yang lalu`;
+                            })()}
+                        />
+                    )}
 
-                    {/* Status Proposal Card */}
-                    <InfoCard
-                        icon={<FileText className="w-5 h-5" />}
-                        label="Status Proposal"
-                        value="-"
-                        subtitle="Belum ada proposal diupload"
-                    />
-
-                    {/* Catatan Card */}
-                    <InfoCard
-                        icon={<Clock className="w-5 h-5" />}
-                        label="Catatan"
-                        value="-"
-                        subtitle="Belum ada revisi yang diupload"
-                    />
+                    {/* Kelengkapan Dokumen Card */}
+                    {registeredTenant && (
+                        <InfoCard
+                            icon={<FileText className="w-5 h-5" />}
+                            label="Kelengkapan Dokumen"
+                            value={(() => {
+                                const docs = registeredTenant.business_documents;
+                                if (!docs) return "0/6";
+                                const totalFiles = 6; // proposal, bmc, nib, laporan keuangan, rab, logo
+                                const uploadedFiles = [
+                                    docs.proposal_url,
+                                    docs.bmc_url,
+                                    docs.sertifikat_nib_url,
+                                    docs.laporan_keuangan_url,
+                                    docs.rab_url,
+                                    docs.logo_url
+                                ].filter(Boolean).length;
+                                return `${uploadedFiles}/${totalFiles}`;
+                            })()}
+                            subtitle={(() => {
+                                const docs = registeredTenant.business_documents;
+                                if (!docs) return "Belum ada dokumen";
+                                const totalFiles = 6;
+                                const uploadedFiles = [
+                                    docs.proposal_url,
+                                    docs.bmc_url,
+                                    docs.sertifikat_nib_url,
+                                    docs.laporan_keuangan_url,
+                                    docs.rab_url,
+                                    docs.logo_url
+                                ].filter(Boolean).length;
+                                return uploadedFiles === totalFiles ? "Semua dokumen lengkap" : `${totalFiles - uploadedFiles} dokumen belum diupload`;
+                            })()}
+                        />
+                    )}
                 </div>
 
                 {/* Registration Status */}
@@ -257,7 +285,7 @@ export function TenantDashboard() {
                                                 </svg>
                                             </div>
                                             <div className="flex-1 pt-1">
-                                                <h4 className="font-semibold text-green-600 mb-0.5">Penilaian Sistem dan Review Admin</h4>
+                                                <h4 className="font-semibold text-green-600 mb-0.5">Review Admin</h4>
                                                 <p className="text-sm text-gray-600">Review admin selesai</p>
                                             </div>
                                         </>
@@ -269,7 +297,7 @@ export function TenantDashboard() {
                                                 </svg>
                                             </div>
                                             <div className="flex-1 pt-1">
-                                                <h4 className="font-semibold text-red-600 mb-0.5">Penilaian Sistem dan Review Admin</h4>
+                                                <h4 className="font-semibold text-red-600 mb-0.5">Review Admin</h4>
                                                 <p className="text-sm text-gray-600">Review admin selesai</p>
                                             </div>
                                         </>
@@ -279,7 +307,7 @@ export function TenantDashboard() {
                                                 <span className="text-white font-bold text-base">2</span>
                                             </div>
                                             <div className="flex-1 pt-1">
-                                                <h4 className="font-semibold text-blue-600 mb-0.5">Penilaian Sistem dan Review Admin</h4>
+                                                <h4 className="font-semibold text-blue-600 mb-0.5">Review Admin</h4>
                                                 <p className="text-sm text-gray-600">Admin sedang meninjau proposal Anda</p>
                                             </div>
                                         </>
