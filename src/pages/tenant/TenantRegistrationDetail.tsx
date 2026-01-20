@@ -93,7 +93,7 @@ const DocumentLink = ({ url, label }: { url: string; label: string }) => {
 
 export function TenantRegistrationDetail({ data, hideHeader = false }: TenantRegistrationDetailProps) {
     // Helper to parse JSON safely
-    const parseJSON = (str: string, fallback: any) => {
+    const parseJSON = <T,>(str: string, fallback: T): T => {
         try {
             return JSON.parse(str);
         } catch {
@@ -103,7 +103,7 @@ export function TenantRegistrationDetail({ data, hideHeader = false }: TenantReg
 
     const teamMembers = parseJSON(data.nama_anggota_tim, []);
     const teamNims = parseJSON(data.nim_nidn_anggota, []);
-    const socialMedia = parseJSON(data.business_documents?.akun_medsos || "{}", {});
+    const socialMedia = parseJSON(data.business_documents?.akun_medsos || "{}", {} as { instagram?: string; tiktok?: string });
     const productPhotos = parseJSON(data.business_documents?.foto_produk_urls || "[]", []);
 
     return (

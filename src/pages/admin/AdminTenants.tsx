@@ -28,7 +28,7 @@ export function AdminTenants() {
             setIsLoading(true);
             setError(null);
             const token = await authService.getValidToken();
-            const params = statusFilter !== "all" ? { status: statusFilter as any } : undefined;
+            const params = statusFilter !== "all" ? { status: statusFilter as TenantRegistrationStatus } : undefined;
             const data = await adminService.getAllTenants(token, params);
             setTenants(data.tenants);
         } catch (err) {
@@ -106,6 +106,35 @@ export function AdminTenants() {
             </span>
         );
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
+                <p className="text-gray-500">Memuat data tenant...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="p-6 max-w-full mx-auto">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                    <div className="flex justify-center mb-4">
+                        <AlertCircle className="w-10 h-10 text-red-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-red-900 mb-2">Terjadi Kesalahan</h3>
+                    <p className="text-red-600 mb-6">{error}</p>
+                    <button
+                        onClick={() => fetchTenants()}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Coba Lagi
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 max-w-full mx-auto">
