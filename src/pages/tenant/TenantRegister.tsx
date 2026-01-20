@@ -31,7 +31,7 @@ export function TenantRegister() {
     const [isLoading, setIsLoading] = useState(false);
     const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
     const [registeredTenant, setRegisteredTenant] = useState<TenantData | null>(null);
-    const [loadingStage, setLoadingStage] = useState<"uploading" | "processing" | "complete" | null>(null);
+    const [loadingStage, setLoadingStage] = useState<"uploading" | "complete" | null>(null);
     const [loadingProgress, setLoadingProgress] = useState(0);
 
     const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -281,7 +281,7 @@ export function TenantRegister() {
         }
 
         try {
-            // Stage 1: Uploading (5 seconds)
+            // Stage 1: Uploading (9 seconds)
             setLoadingStage("uploading");
             setLoadingProgress(0);
 
@@ -292,32 +292,12 @@ export function TenantRegister() {
                         clearInterval(uploadInterval);
                         return 100;
                     }
-                    return prev + 2; // 50 ticks * 100ms = 5000ms = 5s
+                    return prev + 1.11; // 90 ticks * 100ms = 9000ms = 9s
                 });
             }, 100);
 
-            // Wait 5 seconds
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            clearInterval(uploadInterval);
-            setLoadingProgress(100);
-
-            // Stage 2: Processing (10 seconds)
-            setLoadingStage("processing");
-            setLoadingProgress(0);
-
-            // Animate progress for processing stage
-            const processInterval = setInterval(() => {
-                setLoadingProgress(prev => {
-                    if (prev >= 100) {
-                        clearInterval(processInterval);
-                        return 100;
-                    }
-                    return prev + 1; // 100 ticks * 100ms = 10000ms = 10s
-                });
-            }, 100);
-
+            // Prepare submission data
             const idToken = await authService.getValidToken();
-
             const submissionData = new FormData();
 
             // 1. Mandatory Fields
@@ -364,22 +344,22 @@ export function TenantRegister() {
                 submissionData.append("foto_produk", photo);
             });
 
-            // Call API (during processing stage)
+            // Call API during uploading stage
             await tenantService.registerStartup(submissionData, idToken);
 
-            // Wait for remaining processing time
-            await new Promise(resolve => setTimeout(resolve, 10000));
-            clearInterval(processInterval);
+            // Wait for 9 seconds total
+            await new Promise(resolve => setTimeout(resolve, 9000));
+            clearInterval(uploadInterval);
             setLoadingProgress(100);
 
-            // Stage 3: Complete
+            // Stage 2: Complete (1 second)
             setLoadingStage("complete");
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
             // Clear Draft
             localStorage.removeItem("tenant_register_draft");
 
-            // Redirect
+            // Redirect to dashboard
             navigate("/tenant");
 
         } catch (err: unknown) {

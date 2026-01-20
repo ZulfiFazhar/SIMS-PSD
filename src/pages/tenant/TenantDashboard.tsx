@@ -9,7 +9,7 @@ import {
     ArrowRight,
     Loader2
 } from "lucide-react";
-import type { TenantData } from "./TenantRegistrationDetail";
+import { TenantRegistrationDetail, type TenantData } from "./TenantRegistrationDetail";
 
 const EVALUATION_DURATION = 10000; // 10 seconds
 
@@ -93,7 +93,14 @@ export function TenantDashboard() {
 
                     // Check if we need to show evaluation loading
                     const evaluationKey = `evaluation_start_${data.id}`;
+                    const completedKey = `evaluation_completed_${data.id}`;
                     const storedStartTime = localStorage.getItem(evaluationKey);
+                    const evaluationCompleted = localStorage.getItem(completedKey);
+
+                    // Don't show loading if evaluation already completed
+                    if (evaluationCompleted) {
+                        return;
+                    }
 
                     if (!storedStartTime) {
                         // First time entering dashboard after submission
@@ -105,6 +112,7 @@ export function TenantDashboard() {
                         setTimeout(() => {
                             setIsEvaluating(false);
                             localStorage.removeItem(evaluationKey);
+                            localStorage.setItem(completedKey, 'true');
                         }, EVALUATION_DURATION);
                     } else {
                         // Check if 10 seconds has passed
@@ -119,10 +127,12 @@ export function TenantDashboard() {
                             setTimeout(() => {
                                 setIsEvaluating(false);
                                 localStorage.removeItem(evaluationKey);
+                                localStorage.setItem(completedKey, 'true');
                             }, remainingTime);
                         } else {
                             // Evaluation already completed
                             localStorage.removeItem(evaluationKey);
+                            localStorage.setItem(completedKey, 'true');
                         }
                     }
                 }
@@ -450,6 +460,13 @@ export function TenantDashboard() {
                                 </p>
                             </div>
                         </div>
+                    </div>
+                )}
+
+                {/* Tenant Registration Detail - Moved from separate page */}
+                {registeredTenant && registeredTenant.status !== 'rejected' && (
+                    <div className="-mx-6 -mb-6">
+                        <TenantRegistrationDetail data={registeredTenant} hideHeader={true} />
                     </div>
                 )}
             </div>

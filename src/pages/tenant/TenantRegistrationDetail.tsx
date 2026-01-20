@@ -46,6 +46,7 @@ export interface TenantData {
 
 interface TenantRegistrationDetailProps {
     data: TenantData;
+    hideHeader?: boolean;
 }
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -90,7 +91,7 @@ const DocumentLink = ({ url, label }: { url: string; label: string }) => {
     );
 };
 
-export function TenantRegistrationDetail({ data }: TenantRegistrationDetailProps) {
+export function TenantRegistrationDetail({ data, hideHeader = false }: TenantRegistrationDetailProps) {
     // Helper to parse JSON safely
     const parseJSON = (str: string, fallback: any) => {
         try {
@@ -108,22 +109,24 @@ export function TenantRegistrationDetail({ data }: TenantRegistrationDetailProps
     return (
         <div className="max-w-full mx-auto space-y-8 pb-20 p-6">
             {/* Status Header */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Status Pendaftaran</h1>
-                        <p className="text-gray-500 mt-1">Tenant ID: {data.id}</p>
+            {!hideHeader && (
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">Status Pendaftaran</h1>
+                            <p className="text-gray-500 mt-1">Tenant ID: {data.id}</p>
+                        </div>
+                        <StatusBadge status={data.status} />
                     </div>
-                    <StatusBadge status={data.status} />
-                </div>
 
-                {data.status === 'rejected' && data.rejection_reason && (
-                    <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <h3 className="font-semibold text-red-900 mb-1">Alasan Penolakan:</h3>
-                        <p className="text-red-700">{data.rejection_reason}</p>
-                    </div>
-                )}
-            </div>
+                    {data.status === 'rejected' && data.rejection_reason && (
+                        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <h3 className="font-semibold text-red-900 mb-1">Alasan Penolakan:</h3>
+                            <p className="text-red-700">{data.rejection_reason}</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Profile Bisnis */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

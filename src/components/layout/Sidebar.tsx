@@ -29,23 +29,18 @@ export function Sidebar() {
         checkRegistration();
     }, [user]);
 
-    const getRegisterMenuLabel = () => {
-        if (!registrationStatus) return "Registrasi Startup";
-        if (registrationStatus === 'rejected') return "Registrasi Startup";
-        return "Detail Startup";
-    };
-
     const tenantMenuItems = [
         {
             path: "/tenant",
             icon: Home,
             label: "Dashboard",
         },
-        {
+        // Show Register/Detail menu only if not registered or rejected
+        ...((!registrationStatus || registrationStatus === 'rejected') ? [{
             path: "/tenant/register",
             icon: FileText,
-            label: getRegisterMenuLabel(),
-        },
+            label: "Registrasi Startup",
+        }] : []),
         {
             path: "/tenant/profile",
             icon: User,
