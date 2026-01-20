@@ -43,7 +43,7 @@ export function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [systemScores, setSystemScores] = useState<{ [key: string]: number }>({});
+  const [systemStatuses, setSystemStatuses] = useState<{ [key: string]: string }>({});
   const itemsPerPage = 10;
 
   const fetchTenants = useCallback(async () => {
@@ -63,33 +63,33 @@ export function AdminDashboard() {
     }
   }, [statusFilter]);
 
-  // Generate and store system scores
+  // Generate and store system statuses
   useEffect(() => {
-    const storedScores = localStorage.getItem('tenant_system_scores');
-    if (storedScores) {
-      setSystemScores(JSON.parse(storedScores));
+    const storedStatuses = localStorage.getItem('tenant_system_statuses');
+    if (storedStatuses) {
+      setSystemStatuses(JSON.parse(storedStatuses));
     }
   }, []);
 
   useEffect(() => {
     if (tenants.length > 0) {
-      const newScores = { ...systemScores };
-      let hasNewScores = false;
+      const newStatuses = { ...systemStatuses };
+      let hasNewStatuses = false;
 
       tenants.forEach((tenant) => {
-        if (!newScores[tenant.id]) {
-          // Generate random score between 50-95
-          newScores[tenant.id] = Math.floor(Math.random() * 46) + 50;
-          hasNewScores = true;
+        if (!newStatuses[tenant.id]) {
+          // Generate random status: PASS or REJECTED
+          newStatuses[tenant.id] = Math.random() > 0.5 ? 'PASS' : 'REJECTED';
+          hasNewStatuses = true;
         }
       });
 
-      if (hasNewScores) {
-        setSystemScores(newScores);
-        localStorage.setItem('tenant_system_scores', JSON.stringify(newScores));
+      if (hasNewStatuses) {
+        setSystemStatuses(newStatuses);
+        localStorage.setItem('tenant_system_statuses', JSON.stringify(newStatuses));
       }
     }
-  }, [tenants, systemScores]);
+  }, [tenants, systemStatuses]);
 
   useEffect(() => {
     fetchTenants();
@@ -300,7 +300,7 @@ export function AdminDashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fakultas / Prodi</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Daftar</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Sistem</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Sistem</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubah Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail File</th>
@@ -335,8 +335,17 @@ export function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {formatDate(tenant.created_at)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      {systemScores[tenant.id] || '-'}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {systemStatuses[tenant.id] ? (
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${systemStatuses[tenant.id] === 'PASS'
+                            ? 'bg-green-100 text-green-800 border-green-200'
+                            : 'bg-red-100 text-red-800 border-red-200'
+                          }`}>
+                          {systemStatuses[tenant.id]}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(tenant.status)}
