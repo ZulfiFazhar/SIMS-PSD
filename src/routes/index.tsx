@@ -10,7 +10,6 @@ import {
   tenantDetailLoader,
   tenantProfileLoader,
   adminDashboardLoader,
-  adminTenantsLoader,
 } from "./loaders";
 
 // Pages
@@ -18,7 +17,6 @@ import { TenantDashboard } from "../pages/tenant/TenantDashboard";
 import { TenantRegister } from "../pages/tenant/TenantRegister";
 import { TenantStartupDetail } from "../pages/tenant/TenantStartupDetail";
 import { AdminDashboard } from "../pages/admin/AdminDashboard";
-import { AdminTenants } from "../pages/admin/AdminTenants";
 import { TenantProfile } from "../pages/tenant/TenantProfile";
 
 export const router = createBrowserRouter([
@@ -69,11 +67,6 @@ export const router = createBrowserRouter([
             index: true,
             element: <AdminDashboard />,
             loader: adminDashboardLoader,
-          },
-          {
-            path: "tenants",
-            element: <AdminTenants />,
-            loader: adminTenantsLoader,
           },
         ],
       },

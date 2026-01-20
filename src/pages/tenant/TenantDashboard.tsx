@@ -49,7 +49,7 @@ function StepsList() {
         },
         {
             number: 4,
-            text: "Mulai mengisi katalog produk"
+            text: "Proposal disetujui admin dan berhasil membuat akun tenant"
         }
     ];
 

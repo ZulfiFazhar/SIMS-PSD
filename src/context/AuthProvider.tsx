@@ -10,26 +10,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Listen to Firebase auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in with Firebase
-        const session = authService.getCurrentSession();
+      try {
+        if (firebaseUser) {
+          const session = authService.getCurrentSession();
 
-        if (session && authService.isSessionValid()) {
-          // Use cached session
-          setUser(session.user);
+          if (session && authService.isSessionValid()) {
+            setUser(session.user);
+          } else if (session && !authService.isSessionValid()) {
+            try {
+              const newToken = await firebaseUser.getIdToken(true);
+              authService.updateSessionToken(newToken);
+              setUser(session.user);
+            } catch (error) {
+              console.error('Token refresh failed:', error);
+              await authService.signOut();
+              setUser(null);
+            }
+          } else {
+            try {
+              const idToken = await firebaseUser.getIdToken();
+              const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`, {
+                method: "GET",
+                headers: {
+                  "Accept": "application/json",
+                  "Authorization": `Bearer ${idToken}`,
+                },
+              });
+
+              if (response.ok) {
+                const data = await response.json();
+                const backendUser = data.data;
+                const userData = {
+                  id: backendUser.id,
+                  email: backendUser.email,
+                  name: backendUser.display_name,
+                  role: backendUser.role.toUpperCase(),
+                  phone: backendUser.phone_number,
+                };
+
+                const userSession = {
+                  user: userData,
+                  idToken,
+                  timestamp: Date.now(),
+                };
+                localStorage.setItem("auth_session", JSON.stringify(userSession));
+                setUser(userData);
+              } else {
+                await authService.signOut();
+                setUser(null);
+              }
+            } catch (error) {
+              console.error('Failed to restore session:', error);
+              await authService.signOut();
+              setUser(null);
+            }
+          }
         } else {
-          // Session expired or not found, sign out
-          authService.signOut();
           setUser(null);
         }
-      } else {
-        // User is signed out
-        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return unsubscribe;

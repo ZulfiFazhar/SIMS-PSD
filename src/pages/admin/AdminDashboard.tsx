@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Users, Clock, CheckCircle, XCircle, Eye, ChevronDown, Loader2, AlertCircle } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Users, Clock, CheckCircle, XCircle, Eye, ChevronDown, Loader2, AlertCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import type { TenantRegistration, TenantRegistrationStatus } from "../../types";
 import { TenantRegistrationStatus as StatusEnum } from "../../types";
 import { StatusUpdateDialog } from "../../components/admin/StatusUpdateDialog";
@@ -33,31 +33,36 @@ function StatCard({ icon, title, value, bgColor, iconColor }: StatCardProps) {
 
 export function AdminDashboard() {
   const [tenants, setTenants] = useState<TenantRegistration[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedTenant, setSelectedTenant] = useState<TenantRegistration | null>(null);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [showFilePreview, setShowFilePreview] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  // Fetch tenants on mount
-  useEffect(() => {
-    fetchTenants();
-  }, []);
-
-  const fetchTenants = async () => {
+  const fetchTenants = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       const token = await authService.getValidToken();
-      const data = await adminService.getAllTenants(token);
+      const params = statusFilter !== "all" ? { status: statusFilter as TenantRegistrationStatus } : undefined;
+      const data = await adminService.getAllTenants(token, params);
       setTenants(data.tenants);
+      setCurrentPage(1);
     } catch (err) {
       console.error('Failed to fetch tenants:', err);
       setError(err instanceof Error ? err.message : 'Gagal memuat data tenant');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [statusFilter]);
+
+  useEffect(() => {
+    fetchTenants();
+  }, [fetchTenants]);
 
   const handleStatusUpdate = async (rejectionReason?: string) => {
     if (!selectedTenant) return;
@@ -69,7 +74,6 @@ export function AdminDashboard() {
         rejection_reason: rejectionReason,
       });
 
-      // Refresh data after successful update
       await fetchTenants();
       setShowStatusDialog(false);
       setSelectedTenant(null);
@@ -79,17 +83,23 @@ export function AdminDashboard() {
     }
   };
 
-  // Calculate stats
   const totalTenants = tenants.length;
   const pendingCount = tenants.filter(t => t.status === StatusEnum.PENDING).length;
   const approvedCount = tenants.filter(t => t.status === StatusEnum.APPROVED).length;
   const rejectedCount = tenants.filter(t => t.status === StatusEnum.REJECTED).length;
 
-  // Get top 5 pending tenants (oldest first - most urgent)
-  const pendingTenants = tenants
-    .filter(t => t.status === StatusEnum.PENDING)
-    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-    .slice(0, 5);
+  const filteredTenants = tenants.filter((tenant) => {
+    const matchesSearch =
+      tenant.nama_bisnis.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tenant.nama_ketua_tim.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tenant.nim_nidn_ketua.includes(searchQuery);
+    return matchesSearch;
+  });
+
+  const totalPages = Math.ceil(filteredTenants.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTenants = filteredTenants.slice(startIndex, endIndex);
 
   const handleStatusChange = (tenant: TenantRegistration, newStatus: TenantRegistrationStatus) => {
     setSelectedTenant({ ...tenant, status: newStatus });
@@ -106,7 +116,24 @@ export function AdminDashboard() {
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  // Loading state
+  const getStatusBadge = (status: TenantRegistrationStatus) => {
+    const styles = {
+      [StatusEnum.PENDING]: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      [StatusEnum.APPROVED]: "bg-green-100 text-green-800 border-green-200",
+      [StatusEnum.REJECTED]: "bg-red-100 text-red-800 border-red-200",
+    };
+    const labels = {
+      [StatusEnum.PENDING]: "Pending",
+      [StatusEnum.APPROVED]: "Disetujui",
+      [StatusEnum.REJECTED]: "Ditolak",
+    };
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${styles[status]}`}>
+        {labels[status]}
+      </span>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="p-6 max-w-full mx-auto">
@@ -120,7 +147,6 @@ export function AdminDashboard() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="p-6 max-w-full mx-auto">
@@ -142,7 +168,6 @@ export function AdminDashboard() {
       </div>
     );
   }
-
 
   return (
     <div className="p-6 max-w-full mx-auto">
@@ -183,12 +208,49 @@ export function AdminDashboard() {
         />
       </div>
 
-      {/* Top 5 Pending Tenants Table */}
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari nama bisnis, ketua tim, atau NIM..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full appearance-none px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="all">Semua Status</option>
+              <option value={StatusEnum.PENDING}>Pending</option>
+              <option value={StatusEnum.APPROVED}>Disetujui</option>
+              <option value={StatusEnum.REJECTED}>Ditolak</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+          </div>
+        </div>
+
+        <div className="mt-3 text-sm text-gray-600">
+          Menampilkan <span className="font-semibold text-gray-900">{filteredTenants.length}</span> dari {tenants.length} tenant
+        </div>
+      </div>
+
+      {/* Tenants Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Top 5 Tenant Butuh Review Segera</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Daftar Tenant</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Tenant paling lama menunggu validasi
+            Kelola semua akun tenant dan status pendaftaran
           </p>
         </div>
 
@@ -199,30 +261,35 @@ export function AdminDashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Bisnis</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ketua Tim</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fakultas / Prodi</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Daftar</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubah Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {pendingTenants.length === 0 ? (
+              {paginatedTenants.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
-                    <p className="text-gray-500">Tidak ada tenant yang menunggu review</p>
+                  <td colSpan={10} className="px-6 py-12 text-center">
+                    <p className="text-gray-500">Tidak ada tenant ditemukan</p>
                   </td>
                 </tr>
               ) : (
-                pendingTenants.map((tenant, index) => (
+                paginatedTenants.map((tenant, index) => (
                   <tr key={tenant.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{startIndex + index + 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{tenant.nama_bisnis}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{tenant.nama_ketua_tim}</div>
                       <div className="text-xs text-gray-500">{tenant.nim_nidn_ketua}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {tenant.nomor_telepon}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{tenant.fakultas}</div>
@@ -233,6 +300,9 @@ export function AdminDashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {formatDate(tenant.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(tenant.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="relative inline-block">
@@ -263,6 +333,33 @@ export function AdminDashboard() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Halaman {currentPage} dari {totalPages} ({filteredTenants.length} tenant)
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="inline-flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Sebelumnya
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="inline-flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Selanjutnya
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Status Update Dialog */}

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, FileText, User, Users } from "lucide-react";
+import { Home, FileText, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { tenantService } from "../../services/tenantService";
 import { authService } from "../../services/authService";
@@ -58,11 +58,6 @@ export function Sidebar() {
             path: "/admin",
             icon: Home,
             label: "Dashboard",
-        },
-        {
-            path: "/admin/tenants",
-            icon: Users,
-            label: "Kelola Tenant",
         },
     ];
 
