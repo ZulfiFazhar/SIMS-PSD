@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Users, Clock, CheckCircle, XCircle, Eye, ChevronDown, Loader2, AlertCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Clock, CheckCircle, XCircle, Eye, ChevronDown, Loader2, AlertCircle, Search, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import type { TenantRegistration, TenantRegistrationStatus } from "../../types";
 import { TenantRegistrationStatus as StatusEnum } from "../../types";
 import { StatusUpdateDialog } from "../../components/admin/StatusUpdateDialog";
 import { FilePreviewModal } from "../../components/admin/FilePreviewModal";
+import { TenantDetailModal } from "../../components/admin/TenantDetailModal";
 import { adminService } from "../../services/adminService";
 import { authService } from "../../services/authService";
 
@@ -38,6 +39,7 @@ export function AdminDashboard() {
   const [selectedTenant, setSelectedTenant] = useState<TenantRegistration | null>(null);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [showFilePreview, setShowFilePreview] = useState(false);
+  const [showTenantDetail, setShowTenantDetail] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -109,6 +111,11 @@ export function AdminDashboard() {
   const handleViewFiles = (tenant: TenantRegistration) => {
     setSelectedTenant(tenant);
     setShowFilePreview(true);
+  };
+
+  const handleViewTenantDetail = (tenant: TenantRegistration) => {
+    setSelectedTenant(tenant);
+    setShowTenantDetail(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -261,19 +268,19 @@ export function AdminDashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Bisnis</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ketua Tim</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fakultas / Prodi</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Daftar</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubah Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail File</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail Tenant</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedTenants.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center">
+                  <td colSpan={11} className="px-6 py-12 text-center">
                     <p className="text-gray-500">Tidak ada tenant ditemukan</p>
                   </td>
                 </tr>
@@ -287,9 +294,6 @@ export function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{tenant.nama_ketua_tim}</div>
                       <div className="text-xs text-gray-500">{tenant.nim_nidn_ketua}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {tenant.nomor_telepon}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{tenant.fakultas}</div>
@@ -324,6 +328,15 @@ export function AdminDashboard() {
                         className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                       >
                         <Eye className="w-4 h-4" />
+                        File
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => handleViewTenantDetail(tenant)}
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <FileText className="w-4 h-4" />
                         Detail
                       </button>
                     </td>
@@ -377,6 +390,14 @@ export function AdminDashboard() {
         <FilePreviewModal
           tenant={selectedTenant}
           onClose={() => setShowFilePreview(false)}
+        />
+      )}
+
+      {/* Tenant Detail Modal */}
+      {showTenantDetail && selectedTenant && (
+        <TenantDetailModal
+          tenant={selectedTenant}
+          onClose={() => setShowTenantDetail(false)}
         />
       )}
     </div>
