@@ -5,14 +5,14 @@ import { storageService } from "../../services/storageService";
 
 interface StartupDetailModalProps {
   startup: Startup;
-  lecturers: User[];
+  tenants: User[];
   onClose: () => void;
   onUpdate: () => void;
 }
 
 export function StartupDetailModal({
   startup,
-  lecturers,
+  tenants,
   onClose,
   onUpdate,
 }: StartupDetailModalProps) {
@@ -20,7 +20,7 @@ export function StartupDetailModal({
     null
   );
   const [feedback, setFeedback] = useState("");
-  const [assignedLecturer, setAssignedLecturer] = useState("");
+  const [assignedTenant, setAssignedTenant] = useState("");
   const [curationDate, setCurationDate] = useState("");
 
   const handleVerify = () => {
@@ -35,7 +35,7 @@ export function StartupDetailModal({
       const updated: Startup = {
         ...startup,
         status: StartupStatus.VERIFIED,
-        assignedLecturerId: assignedLecturer,
+        assignedTenantId: assignedTenant,
         curationDate: curationDate,
       };
       storageService.saveStartup(updated);
@@ -134,16 +134,16 @@ export function StartupDetailModal({
           {verifyAction === "approve" && (
             <div className="pt-4 border-t space-y-4">
               <Select
-                label="Pilih Dosen Kurator"
-                options={lecturers.map((l) => l.name)}
+                label="Pilih Pengguna Kurator"
+                options={tenants.map((t) => t.name)}
                 value={
-                  lecturers.find((l) => l.id === assignedLecturer)?.name || ""
+                  tenants.find((t) => t.id === assignedTenant)?.name || ""
                 }
                 onChange={(e) => {
-                  const l = lecturers.find(
+                  const t = tenants.find(
                     (user) => user.name === e.target.value
                   );
-                  setAssignedLecturer(l?.id || "");
+                  setAssignedTenant(t?.id || "");
                 }}
               />
               <Input
@@ -156,7 +156,7 @@ export function StartupDetailModal({
                 onClick={handleVerify}
                 variant="success"
                 className="w-full"
-                disabled={!assignedLecturer || !curationDate}
+                disabled={!assignedTenant || !curationDate}
               >
                 Simpan & Tugaskan
               </Button>

@@ -1,7 +1,7 @@
 export const UserRole = {
-  STUDENT: "STUDENT",
+  TENANT: "TENANT",
   ADMIN: "ADMIN",
-  LECTURER: "LECTURER",
+  GUEST: "GUEST",
 } as const;
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
@@ -21,8 +21,6 @@ export interface User {
   password?: string;
   role: UserRole;
   phone?: string;
-  nip?: string; // For lecturers
-  title?: string; // For lecturers
 }
 
 export interface ScoringCriteria {
@@ -38,7 +36,7 @@ export interface ScoringCriteria {
 
 export interface Startup {
   id: string;
-  studentId: string;
+  tenantId: string;
   // Step 1: Identity
   businessName: string;
   category: string;
@@ -71,10 +69,10 @@ export interface Startup {
 
   // Admin Verification
   adminFeedback?: string;
-  assignedLecturerId?: string;
+  assignedTenantId?: string;
   curationDate?: string;
 
-  // Lecturer Grading
+  // Grading
   scores?: ScoringCriteria;
   totalScore?: number;
 }
@@ -87,3 +85,46 @@ export const CATEGORIES = [
   "Agribisnis",
   "Sosial & Lingkungan",
 ];
+
+export const TenantRegistrationStatus = {
+  PENDING: "pending",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+} as const;
+export type TenantRegistrationStatus = (typeof TenantRegistrationStatus)[keyof typeof TenantRegistrationStatus];
+
+export interface TenantRegistration {
+  id: string;
+  user_id: string;
+  nama_bisnis: string;
+  nama_ketua_tim: string;
+  nim_nidn_ketua: string;
+  nama_anggota_tim: string; // JSON string array
+  nim_nidn_anggota: string; // JSON string array
+  fakultas: string;
+  prodi: string;
+  kategori_bisnis: string;
+  jenis_usaha: string;
+  alamat_usaha: string;
+  nomor_telepon: string;
+  lama_usaha: number;
+  omzet: string; // Decimal as string from backend
+  status: TenantRegistrationStatus;
+  created_at: string;
+  updated_at: string;
+  rejection_reason: string | null;
+  business_documents: {
+    id: number;
+    tenant_id: string;
+    logo_url: string;
+    akun_medsos: string; // JSON string object
+    sertifikat_nib_url: string;
+    proposal_url: string;
+    bmc_url: string;
+    rab_url: string;
+    laporan_keuangan_url: string;
+    foto_produk_urls: string; // JSON string array
+    created_at: string;
+    updated_at: string;
+  };
+}

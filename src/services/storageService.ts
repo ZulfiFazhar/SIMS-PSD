@@ -10,10 +10,10 @@ const KEYS = {
 const seedUsers: User[] = [
   {
     id: "u1",
-    name: "Budi Santoso (Mhs)",
-    email: "budi@student.univ.ac.id",
+    name: "Budi Santoso",
+    email: "budi@tenant.univ.ac.id",
     password: "123456",
-    role: UserRole.STUDENT,
+    role: UserRole.TENANT,
     phone: "08123456789",
   },
   {
@@ -26,27 +26,23 @@ const seedUsers: User[] = [
   {
     id: "u3",
     name: "Dr. Hendra Wijaya",
-    email: "hendra@dosen.univ.ac.id",
+    email: "hendra@tenant.univ.ac.id",
     password: "123456",
-    role: UserRole.LECTURER,
-    nip: "198203122005011002",
-    title: "M.M., M.Kom",
+    role: UserRole.TENANT,
   },
   {
     id: "u4",
     name: "Prof. Rina Kartika",
-    email: "rina@dosen.univ.ac.id",
+    email: "rina@tenant.univ.ac.id",
     password: "123456",
-    role: UserRole.LECTURER,
-    nip: "197505202000122001",
-    title: "Ph.D",
+    role: UserRole.TENANT,
   },
 ];
 
 const seedStartups: Startup[] = [
   {
     id: "s1",
-    studentId: "u1",
+    tenantId: "u1",
     businessName: "KampusKopi",
     category: "Kuliner & F&B",
     addressType: "Offline",

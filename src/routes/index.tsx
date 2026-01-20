@@ -5,23 +5,19 @@ import { ErrorPage } from "../pages/ErrorPage";
 
 // Loaders
 import {
-  studentDashboardLoader,
-  studentRegisterLoader,
-  studentDetailLoader,
+  tenantDashboardLoader,
+  tenantRegisterLoader,
+  tenantDetailLoader,
+  tenantProfileLoader,
   adminDashboardLoader,
-  adminLecturersLoader,
-  lecturerDashboardLoader,
-  lecturerGradingLoader,
 } from "./loaders";
 
 // Pages
-import { StudentDashboard } from "../pages/student/StudentDashboard";
-import { StudentRegister } from "../pages/student/StudentRegister";
-import { StudentStartupDetail } from "../pages/student/StudentStartupDetail";
+import { TenantDashboard } from "../pages/tenant/TenantDashboard";
+import { TenantRegister } from "../pages/tenant/TenantRegister";
+import { TenantStartupDetail } from "../pages/tenant/TenantStartupDetail";
 import { AdminDashboard } from "../pages/admin/AdminDashboard";
-import { AdminLecturers } from "../pages/admin/AdminLecturers";
-import { LecturerDashboard } from "../pages/lecturer/LecturerDashboard";
-import { LecturerGrading } from "../pages/lecturer/LecturerGrading";
+import { TenantProfile } from "../pages/tenant/TenantProfile";
 
 export const router = createBrowserRouter([
   {
@@ -37,24 +33,29 @@ export const router = createBrowserRouter([
         index: true,
         element: <Navigate to="/login" replace />,
       },
-      // Student Routes
+      // Tenant Routes
       {
-        path: "student",
+        path: "tenant",
         children: [
           {
             index: true,
-            element: <StudentDashboard />,
-            loader: studentDashboardLoader,
+            element: <TenantDashboard />,
+            loader: tenantDashboardLoader,
           },
           {
             path: "register",
-            element: <StudentRegister />,
-            loader: studentRegisterLoader,
+            element: <TenantRegister />,
+            loader: tenantRegisterLoader,
           },
           {
             path: "startup/:id",
-            element: <StudentStartupDetail />,
-            loader: studentDetailLoader,
+            element: <TenantStartupDetail />,
+            loader: tenantDetailLoader,
+          },
+          {
+            path: "profile",
+            element: <TenantProfile />,
+            loader: tenantProfileLoader,
           },
         ],
       },
@@ -66,27 +67,6 @@ export const router = createBrowserRouter([
             index: true,
             element: <AdminDashboard />,
             loader: adminDashboardLoader,
-          },
-          {
-            path: "lecturers",
-            element: <AdminLecturers />,
-            loader: adminLecturersLoader,
-          },
-        ],
-      },
-      // Lecturer Routes
-      {
-        path: "lecturer",
-        children: [
-          {
-            index: true,
-            element: <LecturerDashboard />,
-            loader: lecturerDashboardLoader,
-          },
-          {
-            path: "grade/:id",
-            element: <LecturerGrading />,
-            loader: lecturerGradingLoader,
           },
         ],
       },
