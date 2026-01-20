@@ -1,100 +1,62 @@
 import { useState } from "react";
-import { Input, Button } from "../SharedUI";
-import { type User } from "../../types";
+import { FcGoogle } from "react-icons/fc";
+import { ShieldCheck } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
-interface LoginFormProps {
-  onLogin: (userId: string) => void;
-  availableUsers: User[];
-  onRegisterClick: () => void;
-}
+export function LoginForm() {
+  const { login, loading, error } = useAuth();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-export function LoginForm({
-  onLogin,
-  availableUsers,
-  onRegisterClick,
-}: LoginFormProps) {
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-
-  const handleManualLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!loginPassword) {
-      alert("Mohon masukkan password.");
-      return;
-    }
-
-    const foundUser = availableUsers.find(
-      (u) => u.email.toLowerCase() === loginEmail.toLowerCase()
-    );
-
-    // Login Verification
-    if (foundUser && foundUser.password === loginPassword) {
-      onLogin(foundUser.id);
-    } else {
-      alert("Email atau Password salah! (Cek kredensial demo di bawah)");
+  const handleGoogleLogin = async () => {
+    try {
+      setIsSigningIn(true);
+      await login();
+      // Navigation handled by AuthPage after user state update
+    } catch (err) {
+      console.error("Login failed:", err);
+      // Error already set in AuthContext
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
   return (
-    <div>
-      <form onSubmit={handleManualLogin} className="space-y-4">
-        <Input
-          label="Email"
-          type="email"
-          value={loginEmail}
-          onChange={(e) => setLoginEmail(e.target.value)}
-          placeholder="nama@email.com"
-          required
-        />
-        <Input
-          label="Password"
-          type="password"
-          value={loginPassword}
-          onChange={(e) => setLoginPassword(e.target.value)}
-          placeholder="********"
-          required
-        />
-        <Button type="submit" className="w-full">
-          Masuk
-        </Button>
-      </form>
+    <div className="space-y-6">
+      {/* Google Login Button */}
+      <button
+        onClick={handleGoogleLogin}
+        disabled={isSigningIn || loading}
+        className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 text-gray-700 font-medium transition-colors duration-200 shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
+        type="button"
+      >
+        {isSigningIn ? (
+          <>
+            <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+            Signing in...
+          </>
+        ) : (
+          <>
+            <FcGoogle className="w-5 h-5" />
+            Masuk dengan Google
+          </>
+        )}
+      </button>
 
-      <div className="mt-6 pt-6 border-t border-slate-100">
-        <p className="text-center text-sm text-slate-500 mb-4">
-          Belum punya akun?
-        </p>
-        <button
-          onClick={onRegisterClick}
-          className="w-full flex justify-center py-2 px-4 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
-        >
-          Registrasi Mahasiswa Baru
-        </button>
-      </div>
-
-      {/* Informasi Akun Demo */}
-      <div className="mt-8 bg-slate-50 p-4 rounded-lg border border-slate-200">
-        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-          Informasi Akun Demo (Simulasi)
-        </h4>
-        <div className="space-y-2 text-xs">
-          {availableUsers.slice(0, 3).map((u) => (
-            <div
-              key={u.id}
-              className="flex justify-between items-center border-b border-slate-200 pb-1 last:border-0"
-            >
-              <div>
-                <span className="font-medium text-slate-700">{u.role}</span>
-                <div className="text-slate-500">{u.name}</div>
-              </div>
-              <div className="text-right font-mono bg-white px-2 py-1 rounded border">
-                {u.email}
-                <div className="text-[10px] text-slate-400">
-                  Pass: {u.password || "123456"}
-                </div>
-              </div>
-            </div>
-          ))}
+      {/* Error Message */}
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+          {error.includes("popup") || error.includes("cancelled")
+            ? "Login dibatalkan. Silakan coba lagi."
+            : error.includes("blocked")
+              ? "Popup diblokir browser. Harap izinkan popup dan coba lagi."
+              : "Login gagal. Silakan coba lagi."}
         </div>
+      )}
+
+      {/* Security Note */}
+      <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+        <ShieldCheck className="w-4 h-4" />
+        <span>Login aman dengan akun Google Anda</span>
       </div>
     </div>
   );

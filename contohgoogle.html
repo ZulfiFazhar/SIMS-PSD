@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      button:hover {
+        background-color: #357ae8;
+      }
+      .token-box {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        word-wrap: break-word;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .user-info {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #e8f5e9;
+        border-radius: 4px;
+      }
+      .api-response {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #fff3cd;
+        border-radius: 4px;
+      }
+      .copy-btn {
+        background-color: #34a853;
+        margin-top: 10px;
+      }
+      .copy-btn:hover {
+        background-color: #2d8e47;
+      }
+      .error {
+        color: red;
+        margin-top: 10px;
+      }
+      .success {
+        color: green;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔑 Firebase Auth Simulation</h1>
+    <p>
+      Click button below to sign in with Google and get your Firebase ID token
+      for testing API endpoints.
+    </p>
+
+    <button id="loginBtn" onclick="signInWithGoogle()">
+      Sign in with Google
+    </button>
+    <button
+      id="logoutBtn"
+      onclick="signOut()"
+      style="display: none; background-color: #dc3545"
+    >
+      Sign Out
+    </button>
+
+    <div id="userInfo" class="user-info" style="display: none">
+      <h3>User Information:</h3>
+      <p><strong>Email:</strong> <span id="userEmail"></span></p>
+      <p><strong>Name:</strong> <span id="userName"></span></p>
+      <p><strong>UID:</strong> <span id="userUid"></span></p>
+    </div>
+
+    <div id="apiResponse" class="api-response" style="display: none">
+      <h3>API Response from /auth/login:</h3>
+      <div class="token-box" id="apiResponseBox"></div>
+    </div>
+
+    <div id="tokenDisplay" style="display: none">
+      <h3>Your Firebase ID Token:</h3>
+      <div class="token-box" id="tokenBox"></div>
+      <button class="copy-btn" onclick="copyToken()">📋 Copy Token</button>
+      <button class="copy-btn" onclick="copyCurlCommand()">
+        📋 Copy cURL Command
+      </button>
+
+      <h3 style="margin-top: 30px">Test with cURL:</h3>
+      <div class="token-box" id="curlCommand"></div>
+    </div>
+
+    <div id="error" class="error"></div>
+    <div id="success" class="success"></div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithPopup,
+        GoogleAuthProvider,
+        signOut as firebaseSignOut,
+      } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCVByNq7brTIA4RV9JyJhUWzHNE9tD_OxU",
+        authDomain: "inkubator-ac13c.firebaseapp.com",
+        projectId: "inkubator-ac13c",
+        storageBucket: "inkubator-ac13c.firebasestorage.app",
+        messagingSenderId: "367737445216",
+        appId: "1:367737445216:web:8cb6470290df7af0b5dc05",
+        measurementId: "G-MM3549PTEV",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+
+      // Backend URL - sesuaikan dengan backend Anda
+      const BACKEND_URL = "https://inkubator.zulfi.web.id";
+
+      window.signInWithGoogle = async function () {
+        try {
+          document.getElementById("error").textContent = "";
+          document.getElementById("success").textContent = "";
+
+          const result = await signInWithPopup(auth, provider);
+          const user = result.user;
+
+          // Get ID token
+          const idToken = await user.getIdToken();
+
+          // Display user info
+          document.getElementById("userEmail").textContent = user.email;
+          document.getElementById("userName").textContent =
+            user.displayName || "N/A";
+          document.getElementById("userUid").textContent = user.uid;
+          document.getElementById("userInfo").style.display = "block";
+
+          // POST ke /auth/login
+          document.getElementById("success").textContent =
+            "Logging in to backend...";
+
+          const loginResponse = await fetch(`${BACKEND_URL}/api/auth/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            headers: {
+              Authorization: "Bearer " + idToken,
+            },
+          });
+
+          const loginData = await loginResponse.json();
+
+          // Display API response
+          document.getElementById("apiResponseBox").textContent =
+            JSON.stringify(loginData, null, 2);
+          document.getElementById("apiResponse").style.display = "block";
+
+          if (loginResponse.ok) {
+            document.getElementById("success").textContent =
+              "✅ Successfully logged in to backend!";
+          } else {
+            document.getElementById("error").textContent =
+              "⚠️ Backend returned error: " +
+              (loginData.message || "Unknown error");
+          }
+
+          // Display token
+          document.getElementById("tokenBox").textContent = idToken;
+          document.getElementById("tokenDisplay").style.display = "block";
+
+          // Generate cURL command
+          const curlCmd = `# Login endpoint\ncurl -X POST ${BACKEND_URL}/api/auth/login \\\n  -H "Content-Type: application/json" \\\n  -d '{"firebase_token": "${idToken}"}'
+
+# Get profile endpoint
+curl -X GET ${BACKEND_URL}/api/auth/me \\\n  -H "Authorization: Bearer ${idToken}"`;
+
+          document.getElementById("curlCommand").textContent = curlCmd;
+
+          // Toggle buttons
+          document.getElementById("loginBtn").style.display = "none";
+          document.getElementById("logoutBtn").style.display = "inline-block";
+        } catch (error) {
+          console.error("Error during sign in:", error);
+          document.getElementById("error").textContent =
+            "Error: " + error.message;
+        }
+      };
+
+      window.signOut = async function () {
+        try {
+          await firebaseSignOut(auth);
+
+          // Hide everything
+          document.getElementById("userInfo").style.display = "none";
+          document.getElementById("tokenDisplay").style.display = "none";
+          document.getElementById("apiResponse").style.display = "none";
+          document.getElementById("loginBtn").style.display = "inline-block";
+          document.getElementById("logoutBtn").style.display = "none";
+          document.getElementById("error").textContent = "";
+          document.getElementById("success").textContent = "";
+        } catch (error) {
+          console.error("Error during sign out:", error);
+          document.getElementById("error").textContent =
+            "Error: " + error.message;
+        }
+      };
+
+      window.copyToken = function () {
+        const token = document.getElementById("tokenBox").textContent;
+        navigator.clipboard.writeText(token).then(() => {
+          alert("Token copied to clipboard!");
+        });
+      };
+
+      window.copyCurlCommand = function () {
+        const curlCmd = document.getElementById("curlCommand").textContent;
+        navigator.clipboard.writeText(curlCmd).then(() => {
+          alert("cURL commands copied to clipboard!");
+        });
+      };
+    </script>
+  </body>
+</html>
