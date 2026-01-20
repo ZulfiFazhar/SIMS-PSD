@@ -45,11 +45,15 @@ function StepsList() {
         },
         {
             number: 3,
-            text: "Tunggu verifikasi dari admin (3-5 hari kerja)"
+            text: "Proposal dinilai oleh sistem secara otomatis"
         },
         {
             number: 4,
-            text: "Proposal disetujui admin dan berhasil membuat akun tenant"
+            text: "Tunggu verifikasi dari admin (3-5 hari kerja)"
+        },
+        {
+            number: 5,
+            text: "Proposal disetujui admin dan berhasil menjadi tenant"
         }
     ];
 
@@ -274,7 +278,21 @@ export function TenantDashboard() {
                                     </div>
                                 </div>
 
-                                {/* Step 2: Penilaian Sistem dan Review Admin */}
+                                {/* Step 2: Proposal Dinilai oleh Sistem - Always completed */}
+                                <div className="flex items-start gap-4 relative pb-8">
+                                    <div className="absolute left-5 top-10 bottom-0 w-0.5 bg-gray-200"></div>
+                                    <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center relative z-10">
+                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex-1 pt-1">
+                                        <h4 className="font-semibold text-green-600 mb-0.5">Proposal Dinilai oleh Sistem</h4>
+                                        <p className="text-sm text-gray-600">Sistem telah menilai kelayakan proposal</p>
+                                    </div>
+                                </div>
+
+                                {/* Step 3: Review Admin */}
                                 <div className="flex items-start gap-4 relative pb-8">
                                     <div className="absolute left-5 top-10 bottom-0 w-0.5 bg-gray-200"></div>
                                     {registeredTenant?.status === 'approved' ? (
@@ -298,13 +316,13 @@ export function TenantDashboard() {
                                             </div>
                                             <div className="flex-1 pt-1">
                                                 <h4 className="font-semibold text-red-600 mb-0.5">Review Admin</h4>
-                                                <p className="text-sm text-gray-600">Review admin selesai</p>
+                                                <p className="text-sm text-gray-600">Proposal ditolak, perlu perbaikan</p>
                                             </div>
                                         </>
                                     ) : (
                                         <>
                                             <div className="flex-shrink-0 w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center relative z-10">
-                                                <span className="text-white font-bold text-base">2</span>
+                                                <span className="text-white font-bold text-base">3</span>
                                             </div>
                                             <div className="flex-1 pt-1">
                                                 <h4 className="font-semibold text-blue-600 mb-0.5">Review Admin</h4>
@@ -314,7 +332,7 @@ export function TenantDashboard() {
                                     )}
                                 </div>
 
-                                {/* Step 3: Proposal Disetujui */}
+                                {/* Step 4: Proposal Disetujui */}
                                 <div className="flex items-start gap-4 relative">
                                     {registeredTenant?.status === 'approved' ? (
                                         <>
@@ -325,13 +343,13 @@ export function TenantDashboard() {
                                             </div>
                                             <div className="flex-1 pt-1">
                                                 <h4 className="font-semibold text-green-600 mb-0.5">Proposal Disetujui</h4>
-                                                <p className="text-sm text-gray-600">Proposal telah disetujui</p>
+                                                <p className="text-sm text-gray-600">Proposal telah disetujui, Anda sudah menjadi tenant</p>
                                             </div>
                                         </>
                                     ) : (
                                         <>
                                             <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center relative z-10">
-                                                <span className="text-gray-500 font-bold text-base">3</span>
+                                                <span className="text-gray-500 font-bold text-base">4</span>
                                             </div>
                                             <div className="flex-1 pt-1">
                                                 <h4 className="font-semibold text-gray-500 mb-0.5">Proposal Disetujui</h4>

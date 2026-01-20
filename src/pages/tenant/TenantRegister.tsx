@@ -5,6 +5,7 @@ import { tenantService } from "../../services/tenantService";
 import { authService } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 import { TenantRegistrationDetail, type TenantData } from "./TenantRegistrationDetail";
+import { SubmissionLoading } from "../../components/tenant/SubmissionLoading";
 
 const FILE_SIZE_LIMITS = {
     logo: 2 * 1024 * 1024, // 2MB
@@ -30,6 +31,8 @@ export function TenantRegister() {
     const [isLoading, setIsLoading] = useState(false);
     const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
     const [registeredTenant, setRegisteredTenant] = useState<TenantData | null>(null);
+    const [loadingStage, setLoadingStage] = useState<"uploading" | "processing" | "complete" | null>(null);
+    const [loadingProgress, setLoadingProgress] = useState(0);
 
     const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
     const [error, setError] = useState<string | null>(null);
@@ -278,6 +281,41 @@ export function TenantRegister() {
         }
 
         try {
+            // Stage 1: Uploading (5 seconds)
+            setLoadingStage("uploading");
+            setLoadingProgress(0);
+
+            // Animate progress for uploading stage
+            const uploadInterval = setInterval(() => {
+                setLoadingProgress(prev => {
+                    if (prev >= 100) {
+                        clearInterval(uploadInterval);
+                        return 100;
+                    }
+                    return prev + 2; // 50 ticks * 100ms = 5000ms = 5s
+                });
+            }, 100);
+
+            // Wait 5 seconds
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            clearInterval(uploadInterval);
+            setLoadingProgress(100);
+
+            // Stage 2: Processing (10 seconds)
+            setLoadingStage("processing");
+            setLoadingProgress(0);
+
+            // Animate progress for processing stage
+            const processInterval = setInterval(() => {
+                setLoadingProgress(prev => {
+                    if (prev >= 100) {
+                        clearInterval(processInterval);
+                        return 100;
+                    }
+                    return prev + 1; // 100 ticks * 100ms = 10000ms = 10s
+                });
+            }, 100);
+
             const idToken = await authService.getValidToken();
 
             const submissionData = new FormData();
@@ -326,8 +364,17 @@ export function TenantRegister() {
                 submissionData.append("foto_produk", photo);
             });
 
-            // Call API
+            // Call API (during processing stage)
             await tenantService.registerStartup(submissionData, idToken);
+
+            // Wait for remaining processing time
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            clearInterval(processInterval);
+            setLoadingProgress(100);
+
+            // Stage 3: Complete
+            setLoadingStage("complete");
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Clear Draft
             localStorage.removeItem("tenant_register_draft");
@@ -338,6 +385,8 @@ export function TenantRegister() {
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Gagal mengirim pendaftaran";
             setError(message);
+            setLoadingStage(null);
+            setLoadingProgress(0);
         } finally {
             setIsLoading(false);
         }
@@ -360,6 +409,11 @@ export function TenantRegister() {
     // If registered and status is NOT 'rejected', show read-only detail
     if (registeredTenant && registeredTenant.status !== 'rejected') {
         return <TenantRegistrationDetail data={registeredTenant} />;
+    }
+
+    // Show submission loading overlay
+    if (loadingStage) {
+        return <SubmissionLoading stage={loadingStage} progress={loadingProgress} />;
     }
 
     return (

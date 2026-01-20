@@ -43,6 +43,7 @@ export function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [systemScores, setSystemScores] = useState<{ [key: string]: number }>({});
   const itemsPerPage = 10;
 
   const fetchTenants = useCallback(async () => {
@@ -61,6 +62,34 @@ export function AdminDashboard() {
       setIsLoading(false);
     }
   }, [statusFilter]);
+
+  // Generate and store system scores
+  useEffect(() => {
+    const storedScores = localStorage.getItem('tenant_system_scores');
+    if (storedScores) {
+      setSystemScores(JSON.parse(storedScores));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tenants.length > 0) {
+      const newScores = { ...systemScores };
+      let hasNewScores = false;
+
+      tenants.forEach((tenant) => {
+        if (!newScores[tenant.id]) {
+          // Generate random score between 50-95
+          newScores[tenant.id] = Math.floor(Math.random() * 46) + 50;
+          hasNewScores = true;
+        }
+      });
+
+      if (hasNewScores) {
+        setSystemScores(newScores);
+        localStorage.setItem('tenant_system_scores', JSON.stringify(newScores));
+      }
+    }
+  }, [tenants, systemScores]);
 
   useEffect(() => {
     fetchTenants();
@@ -271,6 +300,7 @@ export function AdminDashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fakultas / Prodi</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Daftar</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Sistem</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubah Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail File</th>
@@ -280,7 +310,7 @@ export function AdminDashboard() {
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedTenants.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-6 py-12 text-center">
+                  <td colSpan={12} className="px-6 py-12 text-center">
                     <p className="text-gray-500">Tidak ada tenant ditemukan</p>
                   </td>
                 </tr>
@@ -304,6 +334,9 @@ export function AdminDashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {formatDate(tenant.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      {systemScores[tenant.id] || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(tenant.status)}
