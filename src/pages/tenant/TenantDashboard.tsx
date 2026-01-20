@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import type { TenantData } from "./TenantRegistrationDetail";
 
+const EVALUATION_DURATION = 10000; // 10 seconds
+
 interface InfoCardProps {
     icon: React.ReactNode;
     label: string;
@@ -78,6 +80,7 @@ export function TenantDashboard() {
     const { user } = useAuth();
     const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
     const [registeredTenant, setRegisteredTenant] = useState<TenantData | null>(null);
+    const [isEvaluating, setIsEvaluating] = useState(false);
 
     // Check for existing registration
     useEffect(() => {
@@ -87,6 +90,41 @@ export function TenantDashboard() {
                 const data = await tenantService.getTenantRegistration(idToken);
                 if (data) {
                     setRegisteredTenant(data);
+
+                    // Check if we need to show evaluation loading
+                    const evaluationKey = `evaluation_start_${data.id}`;
+                    const storedStartTime = localStorage.getItem(evaluationKey);
+
+                    if (!storedStartTime) {
+                        // First time entering dashboard after submission
+                        const startTime = Date.now();
+                        localStorage.setItem(evaluationKey, startTime.toString());
+                        setIsEvaluating(true);
+
+                        // Set timer to stop evaluating after 10 seconds
+                        setTimeout(() => {
+                            setIsEvaluating(false);
+                            localStorage.removeItem(evaluationKey);
+                        }, EVALUATION_DURATION);
+                    } else {
+                        // Check if 10 seconds has passed
+                        const startTime = parseInt(storedStartTime);
+                        const currentTime = Date.now();
+                        const timeSinceStart = currentTime - startTime;
+
+                        if (timeSinceStart < EVALUATION_DURATION) {
+                            setIsEvaluating(true);
+                            // Set timer for remaining time
+                            const remainingTime = EVALUATION_DURATION - timeSinceStart;
+                            setTimeout(() => {
+                                setIsEvaluating(false);
+                                localStorage.removeItem(evaluationKey);
+                            }, remainingTime);
+                        } else {
+                            // Evaluation already completed
+                            localStorage.removeItem(evaluationKey);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error("Failed to check registration", error);
@@ -193,7 +231,7 @@ export function TenantDashboard() {
 
                         <div className="mb-8 bg-gray-50 p-6 rounded-lg border border-gray-100">
                             <p className="font-bold text-gray-900 mb-4">
-                                Langkah-langkah yang harus Anda lakukan:
+                                Langkah-langkah pendaftaran tenant:
                             </p>
                             <StepsList />
                         </div>
@@ -278,18 +316,32 @@ export function TenantDashboard() {
                                     </div>
                                 </div>
 
-                                {/* Step 2: Proposal Dinilai oleh Sistem - Always completed */}
+                                {/* Step 2: Proposal Dinilai oleh Sistem - Loading for 10 seconds, then completed */}
                                 <div className="flex items-start gap-4 relative pb-8">
                                     <div className="absolute left-5 top-10 bottom-0 w-0.5 bg-gray-200"></div>
-                                    <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center relative z-10">
-                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                    <div className="flex-1 pt-1">
-                                        <h4 className="font-semibold text-green-600 mb-0.5">Proposal Dinilai oleh Sistem</h4>
-                                        <p className="text-sm text-gray-600">Sistem telah menilai kelayakan proposal</p>
-                                    </div>
+                                    {isEvaluating ? (
+                                        <>
+                                            <div className="flex-shrink-0 w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center relative z-10">
+                                                <Loader2 className="w-5 h-5 text-white animate-spin" />
+                                            </div>
+                                            <div className="flex-1 pt-1">
+                                                <h4 className="font-semibold text-blue-600 mb-0.5">Proposal sedang Dinilai oleh Sistem</h4>
+                                                <p className="text-sm text-gray-600">Sistem sedang menilai kelayakan proposal...</p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center relative z-10">
+                                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1 pt-1">
+                                                <h4 className="font-semibold text-green-600 mb-0.5">Proposal Dinilai oleh Sistem</h4>
+                                                <p className="text-sm text-gray-600">Sistem telah menilai kelayakan proposal</p>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
 
                                 {/* Step 3: Review Admin */}

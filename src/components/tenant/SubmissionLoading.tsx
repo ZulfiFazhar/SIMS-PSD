@@ -1,4 +1,5 @@
 import { Loader2, Upload, FileCheck } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface SubmissionLoadingProps {
     stage: "uploading" | "complete";
@@ -6,7 +7,7 @@ interface SubmissionLoadingProps {
 }
 
 export function SubmissionLoading({ stage, progress }: SubmissionLoadingProps) {
-    const getStageInfo = () => {
+    const getStageInfo = (): { icon: ReactNode; title: string; description: string; color: string } => {
         switch (stage) {
             case "uploading":
                 return {
@@ -21,6 +22,13 @@ export function SubmissionLoading({ stage, progress }: SubmissionLoadingProps) {
                     title: "Selesai",
                     description: "Pendaftaran berhasil diproses!",
                     color: "text-green-600"
+                };
+            default:
+                return {
+                    icon: <Upload className="w-12 h-12" />,
+                    title: "Memproses",
+                    description: "Sedang memproses...",
+                    color: "text-blue-600"
                 };
         }
     };
