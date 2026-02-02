@@ -69,7 +69,7 @@ export function SubmissionLoading({ stage, progress }: SubmissionLoadingProps) {
 
                 {/* Progress Percentage */}
                 <p className="text-center text-sm font-medium text-gray-700">
-                    {progress}%
+                    {Math.round(progress)}%
                 </p>
 
                 {/* Loading Spinner */}

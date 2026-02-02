@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { TenantRegistrationDetail, type TenantData } from "./TenantRegistrationDetail";
 
-const EVALUATION_DURATION = 10000; // 10 seconds
+const EVALUATION_DURATION = 10000;
 
 interface InfoCardProps {
     icon: React.ReactNode;
@@ -91,7 +91,7 @@ export function TenantDashboard() {
                 if (data) {
                     setRegisteredTenant(data);
 
-                    // Check if we need to show evaluation loading
+                    // Check if need to show evaluation loading
                     const evaluationKey = `evaluation_start_${data.id}`;
                     const completedKey = `evaluation_completed_${data.id}`;
                     const storedStartTime = localStorage.getItem(evaluationKey);

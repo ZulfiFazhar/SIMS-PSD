@@ -95,7 +95,9 @@ export function TenantRegistrationDetail({ data, hideHeader = false }: TenantReg
     // Helper to parse JSON safely
     const parseJSON = <T,>(str: string, fallback: T): T => {
         try {
-            return JSON.parse(str);
+            const parsed = JSON.parse(str);
+            // Return fallback if parsed value is null or undefined
+            return parsed ?? fallback;
         } catch {
             return fallback;
         }
@@ -202,13 +204,16 @@ export function TenantRegistrationDetail({ data, hideHeader = false }: TenantReg
                         <div>
                             <label className="block text-xs font-medium text-gray-500 uppercase mb-2">Anggota Tim</label>
                             <div className="space-y-3">
-                                {teamMembers.map((member: string, idx: number) => (
-                                    <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                        <p className="font-medium text-gray-900">{member}</p>
-                                        <p className="text-sm text-gray-500">NIM: {teamNims[idx] || '-'}</p>
-                                    </div>
-                                ))}
-                                {teamMembers.length === 0 && <p className="text-gray-400 text-sm">Tidak ada anggota tambahan</p>}
+                                {teamMembers && teamMembers.length > 0 ? (
+                                    teamMembers.map((member: string, idx: number) => (
+                                        <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <p className="font-medium text-gray-900">{member}</p>
+                                            <p className="text-sm text-gray-500">NIM: {teamNims[idx] || '-'}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-gray-400 text-sm">Tidak ada anggota tambahan</p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -232,7 +237,7 @@ export function TenantRegistrationDetail({ data, hideHeader = false }: TenantReg
                         <DocumentLink url={data.business_documents?.laporan_keuangan_url} label="Laporan Keuangan" />
                     </div>
 
-                    {productPhotos.length > 0 && (
+                    {productPhotos && productPhotos.length > 0 && (
                         <div className="mt-8">
                             <label className="block text-xs font-medium text-gray-500 uppercase mb-3">Foto Produk</label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

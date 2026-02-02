@@ -63,6 +63,40 @@ export function AdminDashboard() {
     }
   }, [statusFilter]);
 
+  // Helper function to determine AI status based on proposal filename
+  const getAIStatusFromProposal = (proposalUrl: string): string => {
+    if (!proposalUrl) {
+      return Math.random() > 0.5 ? 'PASS' : 'REJECTED';
+    }
+
+    // Extract filename from URL (last part after /)
+    const filename = proposalUrl.split('/').pop() || '';
+    const filenameLower = filename.toLowerCase();
+
+    // Check for acceptance keywords
+    const acceptKeywords = ['acc', 'accepted'];
+    const hasAcceptKeyword = acceptKeywords.some(keyword =>
+      filenameLower.includes(keyword.toLowerCase())
+    );
+
+    if (hasAcceptKeyword) {
+      return 'PASS';
+    }
+
+    // Check for rejection keywords
+    const rejectKeywords = ['reject', 'rejected'];
+    const hasRejectKeyword = rejectKeywords.some(keyword =>
+      filenameLower.includes(keyword.toLowerCase())
+    );
+
+    if (hasRejectKeyword) {
+      return 'REJECTED';
+    }
+
+    // Default to random if no keywords found
+    return Math.random() > 0.5 ? 'PASS' : 'REJECTED';
+  };
+
   // Generate and store system statuses
   useEffect(() => {
     const storedStatuses = localStorage.getItem('tenant_system_statuses');
@@ -78,8 +112,9 @@ export function AdminDashboard() {
 
       tenants.forEach((tenant) => {
         if (!newStatuses[tenant.id]) {
-          // Generate random status: PASS or REJECTED
-          newStatuses[tenant.id] = Math.random() > 0.5 ? 'PASS' : 'REJECTED';
+          // Determine status based on proposal filename
+          const proposalUrl = tenant.business_documents?.proposal_url || '';
+          newStatuses[tenant.id] = getAIStatusFromProposal(proposalUrl);
           hasNewStatuses = true;
         }
       });
@@ -338,8 +373,8 @@ export function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {systemStatuses[tenant.id] ? (
                         <span className={`px-3 py-1 rounded-full text-xs font-medium border ${systemStatuses[tenant.id] === 'PASS'
-                            ? 'bg-green-100 text-green-800 border-green-200'
-                            : 'bg-red-100 text-red-800 border-red-200'
+                          ? 'bg-green-100 text-green-800 border-green-200'
+                          : 'bg-red-100 text-red-800 border-red-200'
                           }`}>
                           {systemStatuses[tenant.id]}
                         </span>

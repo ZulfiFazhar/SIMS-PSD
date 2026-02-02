@@ -7,16 +7,18 @@ export function ErrorPage() {
   let errorMessage: string;
 
   if (isRouteErrorResponse(error)) {
-    // error is type `ErrorResponse`
     errorMessage = error.statusText || error.data?.message || "Unknown error";
   } else if (error instanceof Error) {
     errorMessage = error.message;
   } else if (typeof error === "string") {
     errorMessage = error;
   } else {
-    console.error(error);
     errorMessage = "Unknown error";
   }
+
+  // Log error to console for debugging (only visible in dev tools)
+  console.error("Application Error:", error);
+  console.error("Error Details:", errorMessage);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4">
@@ -28,11 +30,8 @@ export function ErrorPage() {
           Oops! Terjadi Kesalahan
         </h1>
         <p className="text-slate-600 mb-6">
-          Maaf, terjadi kesalahan yang tidak terduga.
+          Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi atau hubungi administrator jika masalah berlanjut.
         </p>
-        <div className="bg-slate-100 p-4 rounded-lg mb-6 text-sm font-mono text-red-600 break-words">
-          {errorMessage}
-        </div>
         <Link to="/">
           <Button>Kembali ke Beranda</Button>
         </Link>

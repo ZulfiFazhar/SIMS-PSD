@@ -51,7 +51,7 @@ export function StartupDetail({ startup, onBack }: StartupDetailProps) {
                     Anggota Tim:
                   </span>
                   <ul className="list-disc list-inside pl-2 text-slate-700">
-                    {startup.teamMembers.length > 0 ? (
+                    {startup.teamMembers && startup.teamMembers.length > 0 ? (
                       startup.teamMembers.map((m, i) => <li key={i}>{m}</li>)
                     ) : (
                       <li className="text-slate-400 italic">

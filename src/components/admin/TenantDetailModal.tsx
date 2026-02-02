@@ -27,9 +27,11 @@ export function TenantDetailModal({ tenant, onClose }: TenantDetailModalProps) {
         }).format(num);
     };
 
+
     const parseJsonArray = (jsonString: string): string[] => {
         try {
-            return JSON.parse(jsonString);
+            const parsed = JSON.parse(jsonString);
+            return parsed ?? [];
         } catch {
             return [];
         }
@@ -115,8 +117,9 @@ export function TenantDetailModal({ tenant, onClose }: TenantDetailModalProps) {
                             </div>
                         </div>
 
+
                         {/* Anggota Tim */}
-                        {anggotaTim.length > 0 && (
+                        {anggotaTim && anggotaTim.length > 0 && (
                             <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
                                 <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
                                     <Users className="w-5 h-5 text-blue-600" />
